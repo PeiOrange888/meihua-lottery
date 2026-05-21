@@ -622,24 +622,57 @@
             }
         }
 
-        // 起卦次数统计
-        function getQiguaCount() {
-            return parseInt(localStorage.getItem('qiguaCount') || '0');
+        // 起卦次数统计（使用 JSONBin.io 存储）
+        const JSONBIN_API_KEY = '$2a$10$xYgkIxODXR/vufMeluISbOn2PvCttjQAf.zX5NQL6OOZbeaS2EggG';
+        const JSONBIN_BIN_ID = '6a8f345cea5a733b12f8e3ea';
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+        
+        async function getQiguaCount() {
+            try {
+                const response = await fetch(JSONBIN_URL, {
+                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
+                });
+                const data = await response.json();
+                return data.record.qigua_count || 0;
+            } catch (error) {
+                return parseInt(localStorage.getItem('qiguaCount') || '0');
+            }
         }
         
-        function saveQiguaCount(count) {
-            localStorage.setItem('qiguaCount', count.toString());
+        async function incrementQiguaCount() {
+            try {
+                const currentCount = await getQiguaCount();
+                const newCount = currentCount + 1;
+                
+                await fetch(JSONBIN_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'X-Master-Key': JSONBIN_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        qigua_count: newCount,
+                        last_update: new Date().toISOString()
+                    })
+                });
+                
+                localStorage.setItem('qiguaCount', newCount.toString());
+                updateQiguaDisplay(newCount);
+            } catch (error) {
+                const count = parseInt(localStorage.getItem('qiguaCount') || '0') + 1;
+                localStorage.setItem('qiguaCount', count.toString());
+                updateQiguaDisplay(count);
+            }
         }
         
-        function updateQiguaDisplay() {
-            const count = getQiguaCount();
+        function updateQiguaDisplay(count) {
             document.getElementById('qigua_times').textContent = count;
         }
         
-        function incrementQiguaCount() {
-            const count = getQiguaCount() + 1;
-            saveQiguaCount(count);
-            updateQiguaDisplay();
+        async function loadQiguaCount() {
+            const count = await getQiguaCount();
+            updateQiguaDisplay(count);
+            localStorage.setItem('qiguaCount', count.toString());
         }
 
         // 主函数
@@ -662,7 +695,7 @@
             renderDetail('detailDale', guaInfo, lottery, 'dale');
         }
         
-        document.addEventListener('DOMContentLoaded', updateQiguaDisplay);
+        document.addEventListener('DOMContentLoaded', loadQiguaCount);
     </script>
 </body>
 </html>
