@@ -337,20 +337,45 @@
         }
 
         /**
-         * 体用变数
-         * 体者为主，用者为客
-         * 生者相加，克者相减，比和相乘
+         * 体用变数（完整版本）
+         * 根据体用五行生克关系计算数值
          */
         function tiYongBianShu(ti, yong, relation, base, max) {
+            // 五行生克系数
+            const coeff = {
+                '体生用': 0.7,
+                '体克用': 1.3,
+                '用生体': 1.1,
+                '用克体': 0.9,
+                '比和': 1.0
+            };
+            
             let result;
+            const c = coeff[relation] || 1.0;
+            
             if (relation === '比和') {
-                result = ti * yong + base;
+                result = Math.round((ti * yong + base) * c);
             } else if (relation === '体生用' || relation === '用生体') {
-                result = ti + yong + base;
+                result = Math.round((ti + yong + base) * c);
             } else {
-                result = Math.abs(ti - yong) + base;
+                result = Math.round((Math.abs(ti - yong) + base) * c);
             }
+            
             return guiCang(result, max);
+        }
+
+        /**
+         * 五行生克系数获取
+         */
+        function getWuXingCoeff(relation) {
+            const coeff = {
+                '体生用': 0.7,
+                '体克用': 1.3,
+                '用生体': 1.1,
+                '用克体': 0.9,
+                '比和': 1.0
+            };
+            return coeff[relation] || 1.0;
         }
 
         /**
@@ -470,34 +495,33 @@
                     benGuaXu, tiNum, yongNum, tiYongRel,
                     bianGuaXu, huShangNum, huXiaNum } = guaInfo;
 
-            // 双色球红球
+            // 双色球红球（6个来源，基于梅花易数完整原理）
             const redCandidates = [
-                guiCang(benGuaXu, 33),
-                guiCang(bianGuaXu, 33),
-                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 33),
-                guiCang(huShangNum, 33),
-                guiCang(huXiaNum, 33),
-                guiCang(dongYao + diZhi, 33)
+                guiCang(benGuaXu, 33),                              // ① 本卦卦序
+                guiCang(bianGuaXu, 33),                             // ② 变卦卦序
+                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 33),  // ③ 体用变数
+                guiCang(huShangNum * huXiaNum, 33),                 // ④ 互卦积
+                guiCang(shangGua * 10 + xiaGua, 33),                // ⑤ 本卦组合
+                guiCang(bianGuaXu * getWuXingCoeff(tiYongRel.type), 33) // ⑥ 变卦×五行系数
             ];
             const redBalls = tongChiPeiShu(redCandidates, 33, dongYao).slice(0, 6);
 
-            // 双色球蓝球
-            const blueBall = tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 16);
+            // 双色球蓝球（1个，独立计算）
+            const blueBall = tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao + diZhi, 16);
 
-            // 大乐透前区
+            // 大乐透前区（5个来源）
             const frontCandidates = [
-                guiCang(benGuaXu, 35),
-                guiCang(bianGuaXu, 35),
-                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 35),
-                guiCang(dongYao * diZhi, 35),
-                guiCang(diZhi + dongYao, 35)
+                guiCang(benGuaXu, 35),                              // ① 本卦卦序
+                guiCang(bianGuaXu, 35),                             // ② 变卦卦序
+                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 35),  // ③ 体用变数
+                guiCang(huShangNum * huXiaNum + diZhi, 35),         // ④ 互卦积+时辰
+                guiCang(dongYao * diZhi * getWuXingCoeff(tiYongRel.type), 35) // ⑤ 动爻×时辰×五行系数
             ];
             const frontBalls = tongChiPeiShu(frontCandidates, 35, dongYao).slice(0, 5);
 
-            // 大乐透后区
-            let backA = huShangNum;
-            let backB = huXiaNum + 4;
-            if (backB > 12) backB = backB - 12;
+            // 大乐透后区（2个，基于互卦）
+            let backA = guiCang(huShangNum + dongYao, 12);
+            let backB = guiCang(huXiaNum + diZhi, 12);
             if (backA === backB) {
                 backB++;
                 if (backB > 12) backB = 1;
