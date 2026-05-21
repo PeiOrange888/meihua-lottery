@@ -303,31 +303,36 @@
         }
 
         /**
-         * 同池配数
-         * 同号不宜并存于同池，如卦中不重爻
-         * 既占此位，则移下一位（随机方向，避免连续数字）
+         * 同池配数（卦变跳跃法）
+         * 采用先天八卦数作为跳跃步长，动爻奇偶决定方向
+         * 体现"卦变往来"的易理
          */
-        function tongChiPeiShu(candidates, maxVal) {
+        function tongChiPeiShu(candidates, maxVal, dongYao) {
             let result = [];
+            
             for (let val of candidates) {
                 let v = val;
                 let attempts = 0;
                 const maxAttempts = maxVal;
                 
+                // 使用先天八卦数作为跳跃步长（1-8）
+                const step = (val % 8) + 1;
+                
                 while (result.includes(v) && attempts < maxAttempts) {
-                    // 随机选择方向，避免连续数字
-                    const direction = Math.random() > 0.5 ? 1 : -1;
-                    v += direction;
+                    // 动爻奇偶决定方向：阳爻(奇)进，阴爻(偶)退
+                    const direction = dongYao % 2 === 1 ? 1 : -1;
+                    v += direction * step;
                     
-                    // 处理边界
-                    if (v > maxVal) v = 1;
-                    if (v < 1) v = maxVal;
+                    // 循环边界
+                    while (v > maxVal) v -= maxVal;
+                    while (v < 1) v += maxVal;
                     
                     attempts++;
                 }
                 
                 result.push(v);
             }
+            
             return result.sort((a, b) => a - b);
         }
 
@@ -474,7 +479,7 @@
                 guiCang(huXiaNum, 33),
                 guiCang(dongYao + diZhi, 33)
             ];
-            const redBalls = tongChiPeiShu(redCandidates, 33).slice(0, 6);
+            const redBalls = tongChiPeiShu(redCandidates, 33, dongYao).slice(0, 6);
 
             // 双色球蓝球
             const blueBall = tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 16);
@@ -487,7 +492,7 @@
                 guiCang(dongYao * diZhi, 35),
                 guiCang(diZhi + dongYao, 35)
             ];
-            const frontBalls = tongChiPeiShu(frontCandidates, 35).slice(0, 5);
+            const frontBalls = tongChiPeiShu(frontCandidates, 35, dongYao).slice(0, 5);
 
             // 大乐透后区
             let backA = huShangNum;
