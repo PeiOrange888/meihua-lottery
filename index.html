@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梅花易数 · 彩票预测</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a0a0a;
+            --bg-secondary: #2d1515;
+            --accent-red: #8b0000;
+            --accent-gold: #d4af37;
+            --text-primary: #f5f5dc;
+            --text-secondary: #c9b896;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+        
+        .chinese-border {
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        .ball {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .ball-red {
+            background: linear-gradient(145deg, #ff4444 0%, #cc0000 50%, #990000 100%);
+            color: white;
+            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), 
+                        inset 3px 3px 6px rgba(255,255,255,0.2),
+                        0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .ball-blue {
+            background: linear-gradient(145deg, #4a90d9 0%, #1e5aa8 50%, #0d3a7a 100%);
+            color: white;
+            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), 
+                        inset 3px 3px 6px rgba(255,255,255,0.2),
+                        0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .ball-purple {
+            background: linear-gradient(145deg, #9b59b6 0%, #6c3483 50%, #4a235a 100%);
+            color: white;
+            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), 
+                        inset 3px 3px 6px rgba(255,255,255,0.2),
+                        0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .btn-qigua {
+            background: linear-gradient(145deg, var(--accent-red) 0%, #6b0000 100%);
+            color: var(--accent-gold);
+            border: 2px solid var(--accent-gold);
+            padding: 1rem 3rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .btn-qigua:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-qigua:active {
+            transform: translateY(0);
+        }
+        
+        .gua-card {
+            background: rgba(45, 21, 21, 0.9);
+            border: 1px solid var(--accent-gold);
+            padding: 1.5rem;
+        }
+        
+        .section-title {
+            color: var(--accent-gold);
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-section {
+            background: rgba(26, 10, 10, 0.8);
+            border-left: 3px solid var(--accent-gold);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .ball {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="text-[var(--text-primary)]">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 标题区 -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--accent-gold); text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                梅花易数 · 彩票预测
+            </h1>
+            <p class="text-xl text-[var(--text-secondary)]">仅供娱乐</p>
+        </header>
+
+        <!-- 起卦按钮区 -->
+        <section class="text-center mb-12">
+            <button id="qiguaBtn" class="btn-qigua rounded-lg" onclick="qiGua()">
+                点击起卦
+            </button>
+            <p id="timeDisplay" class="mt-4 text-[var(--text-secondary)] text-sm"></p>
+        </section>
+
+        <!-- 结果展示区 -->
+        <section id="resultSection" class="hidden">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- 双色球 -->
+                <div class="gua-card chinese-border rounded-lg">
+                    <h2 class="section-title text-2xl font-bold">福彩双色球</h2>
+                    
+                    <div class="mb-6">
+                        <p class="text-sm mb-2 text-[var(--text-secondary)]">红球区</p>
+                        <div id="redBalls" class="flex flex-wrap gap-2 justify-center"></div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="text-sm mb-2 text-[var(--text-secondary)]">蓝球区</p>
+                        <div id="blueBalls" class="flex gap-2 justify-center"></div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div id="guaInfoShuangse" class="text-sm"></div>
+                        <button onclick="toggleDetail('shuangse')" class="text-[var(--accent-gold)] text-sm mt-2 hover:underline">
+                            [ 查看详细推导 ]
+                        </button>
+                        <div id="detailShuangse" class="hidden mt-3 text-xs text-[var(--text-secondary)]"></div>
+                    </div>
+                </div>
+
+                <!-- 大乐透 -->
+                <div class="gua-card chinese-border rounded-lg">
+                    <h2 class="section-title text-2xl font-bold">体彩大乐透</h2>
+                    
+                    <div class="mb-6">
+                        <p class="text-sm mb-2 text-[var(--text-secondary)]">红球区</p>
+                        <div id="frontBalls" class="flex flex-wrap gap-2 justify-center"></div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="text-sm mb-2 text-[var(--text-secondary)]">蓝球区</p>
+                        <div id="backBalls" class="flex gap-2 justify-center"></div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div id="guaInfoDale" class="text-sm"></div>
+                        <button onclick="toggleDetail('dale')" class="text-[var(--accent-gold)] text-sm mt-2 hover:underline">
+                            [ 查看详细推导 ]
+                        </button>
+                        <div id="detailDale" class="hidden mt-3 text-xs text-[var(--text-secondary)]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 底部免责 -->
+        <footer class="mt-12 text-center text-sm text-[var(--text-secondary)]">
+            <p>温馨提示：彩票开奖为独立随机事件，本工具基于梅花易数算法生成号码，仅供文化娱乐与思维练习，不构成任何投注建议。请理性购彩，量力而行。</p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // 核心数据字典
+        // ============================================
+
+        // 先天八卦数到五行映射
+        const WUXING = {
+            1: '金', // 乾
+            2: '金', // 兑
+            3: '火', // 离
+            4: '木', // 震
+            5: '木', // 巽
+            6: '水', // 坎
+            7: '土', // 艮
+            8: '土'  // 坤
+        };
+
+        // 五行生克关系
+        const SHENG = {
+            '木': '火', '火': '土', '土': '金', '金': '水', '水': '木'
+        };
+        const KE = {
+            '木': '土', '土': '水', '水': '火', '火': '金', '金': '木'
+        };
+
+        // 64卦完整数据表
+        // 六爻格式：[上爻, 五爻, 四爻, 三爻, 二爻, 初爻] - 1为阳爻，0为阴爻
+        const GUA_64 = {
+            1:  { name: '乾为天', yao: [1,1,1,1,1,1] },
+            2:  { name: '坤为地', yao: [0,0,0,0,0,0] },
+            3:  { name: '水雷屯', yao: [0,1,0,1,0,0] },
+            4:  { name: '山水蒙', yao: [1,0,0,1,0,0] },
+            5:  { name: '水天需', yao: [1,1,1,0,1,0] },
+            6:  { name: '天水讼', yao: [0,1,0,1,1,1] },
+            7:  { name: '地水师', yao: [0,1,0,0,0,0] },
+            8:  { name: '水地比', yao: [0,0,0,0,1,0] },
+            9:  { name: '风天小畜', yao: [0,1,1,1,1,0] },
+            10: { name: '天泽履', yao: [0,1,1,1,0,1] },
+            11: { name: '地天泰', yao: [1,1,1,0,0,0] },
+            12: { name: '天地否', yao: [0,0,0,1,1,1] },
+            13: { name: '天火同人', yao: [0,1,0,1,1,1] },
+            14: { name: '火天大有', yao: [1,1,1,0,1,0] },
+            15: { name: '地山谦', yao: [0,0,1,0,0,0] },
+            16: { name: '雷地豫', yao: [0,0,0,0,1,0] },
+            17: { name: '泽雷随', yao: [0,1,0,0,1,0] },
+            18: { name: '山风蛊', yao: [0,1,0,0,0,1] },
+            19: { name: '地泽临', yao: [0,1,0,0,0,0] },
+            20: { name: '风地观', yao: [0,0,0,1,1,0] },
+            21: { name: '火雷噬嗑', yao: [0,1,0,0,1,0] },
+            22: { name: '山火贲', yao: [0,1,0,1,0,0] },
+            23: { name: '山地剥', yao: [0,0,0,1,0,0] },
+            24: { name: '地雷复', yao: [0,1,0,0,0,0] },
+            25: { name: '天雷无妄', yao: [0,1,0,1,1,1] },
+            26: { name: '山雷颐', yao: [0,1,0,1,0,0] },
+            27: { name: '山泽损', yao: [0,1,0,1,0,0] },
+            28: { name: '风雷益', yao: [0,1,0,1,1,0] },
+            29: { name: '泽天夬', yao: [1,1,1,1,0,1] },
+            30: { name: '天风姤', yao: [0,1,1,1,1,1] },
+            31: { name: '泽地萃', yao: [0,0,0,0,1,0] },
+            32: { name: '地风升', yao: [0,1,0,0,0,0] },
+            33: { name: '泽雷随', yao: [0,1,0,0,1,0] },
+            34: { name: '雷天大壮', yao: [1,1,1,1,0,0] },
+            35: { name: '火地晋', yao: [0,0,0,0,1,0] },
+            36: { name: '地火明夷', yao: [0,1,0,0,0,0] },
+            37: { name: '风火家人', yao: [0,1,0,1,1,0] },
+            38: { name: '火泽睽', yao: [0,1,1,0,1,0] },
+            39: { name: '山蹇', yao: [0,0,1,0,0,0] },
+            40: { name: '雷水解', yao: [0,1,0,0,1,0] },
+            41: { name: '山泽损', yao: [0,1,0,1,0,0] },
+            42: { name: '风雷益', yao: [0,1,0,1,1,0] },
+            43: { name: '泽天夬', yao: [1,1,1,1,0,1] },
+            44: { name: '天风姤', yao: [0,1,1,1,1,1] },
+            45: { name: '泽地萃', yao: [0,0,0,0,1,0] },
+            46: { name: '地风升', yao: [0,1,0,0,0,0] },
+            47: { name: '泽雷随', yao: [0,1,0,0,1,0] },
+            48: { name: '雷天大壮', yao: [1,1,1,1,0,0] },
+            49: { name: '火地晋', yao: [0,0,0,0,1,0] },
+            50: { name: '地火明夷', yao: [0,1,0,0,0,0] },
+            51: { name: '风火家人', yao: [0,1,0,1,1,0] },
+            52: { name: '火泽睽', yao: [0,1,1,0,1,0] },
+            53: { name: '山蹇', yao: [0,0,1,0,0,0] },
+            54: { name: '雷水解', yao: [0,1,0,0,1,0] },
+            55: { name: '雷泽归妹', yao: [0,1,1,0,0,0] },
+            56: { name: '风火家人', yao: [0,1,0,1,1,0] },
+            57: { name: '火山旅', yao: [0,1,1,0,1,0] },
+            58: { name: '巽为风', yao: [0,1,0,1,1,0] },
+            59: { name: '兑为泽', yao: [0,1,1,0,1,0] },
+            60: { name: '水泽节', yao: [0,1,0,0,1,0] },
+            61: { name: '风泽中孚', yao: [0,1,1,0,1,0] },
+            62: { name: '雷山小过', yao: [1,0,0,0,1,0] },
+            63: { name: '水火既济', yao: [0,1,0,1,0,0] },
+            64: { name: '火水未济', yao: [0,1,0,1,0,0] }
+        };
+
+        // 三爻卦到先天数映射（二进制转十进制）
+        const TRI_TO_NUM = {
+            '111': 1, '011': 2, '101': 3, '001': 4,
+            '110': 5, '010': 6, '100': 7, '000': 8
+        };
+
+        // ============================================
+        // 工具函数（易学原理解释）
+        // ============================================
+
+        /**
+         * 卦数归藏
+         * "物不可以终尽，故归余于太阴"
+         * 卦数不可终尽，归藏于八卦循环之理
+         */
+        function guiCang(n, max) {
+            let r = n % max;
+            return r === 0 ? max : r;
+        }
+
+        /**
+         * 同池配数
+         * 同号不宜并存于同池，如卦中不重爻
+         * 既占此位，则移下一位
+         */
+        function tongChiPeiShu(candidates, maxVal) {
+            let result = [];
+            for (let val of candidates) {
+                let v = val;
+                while (result.includes(v)) {
+                    v++;
+                    if (v > maxVal) v = 1;
+                }
+                result.push(v);
+            }
+            return result.sort((a, b) => a - b);
+        }
+
+        /**
+         * 体用变数
+         * 体者为主，用者为客
+         * 生者相加，克者相减，比和相乘
+         */
+        function tiYongBianShu(ti, yong, relation, base, max) {
+            let result;
+            if (relation === '比和') {
+                result = ti * yong + base;
+            } else if (relation === '体生用' || relation === '用生体') {
+                result = ti + yong + base;
+            } else {
+                result = Math.abs(ti - yong) + base;
+            }
+            return guiCang(result, max);
+        }
+
+        /**
+         * 获取体用关系描述
+         */
+        function getTiYongRelation(ti_num, yong_num) {
+            const ti_wx = WUXING[ti_num];
+            const yong_wx = WUXING[yong_num];
+            
+            if (SHENG[ti_wx] === yong_wx) {
+                return { type: '体生用', desc: `体${ti_wx}生用${yong_wx}` };
+            }
+            if (KE[ti_wx] === yong_wx) {
+                return { type: '体克用', desc: `体${ti_wx}克用${yong_wx}` };
+            }
+            if (SHENG[yong_wx] === ti_wx) {
+                return { type: '用生体', desc: `体${ti_wx}被用${yong_wx}生` };
+            }
+            if (KE[yong_wx] === ti_wx) {
+                return { type: '用克体', desc: `体${ti_wx}被用${yong_wx}克` };
+            }
+            return { type: '比和', desc: `体${ti_wx}比用${yong_wx}` };
+        }
+
+        /**
+         * 三爻转先天数
+         */
+        function triToNumber(yao) {
+            return TRI_TO_NUM[yao.join('')] || 1;
+        }
+
+        /**
+         * 六爻转三爻
+         */
+        function liuYaoToSanYao(yao, start, end) {
+            return yao.slice(start, end);
+        }
+
+        // ============================================
+        // 起卦引擎
+        // ============================================
+// 起卦引擎
+        function calculateGua() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const second = now.getSeconds();
+
+            // 显示时间
+            document.getElementById('timeDisplay').textContent = 
+                `${year}年${month}月${day}日 ${hour}时${minute}分${second}秒`;
+
+            // 第一步：计算上卦、下卦、动爻、时辰
+            const sum1 = year + month + day;
+            const sum2 = year + month + day + hour + minute + second;
+            
+            const shangGua = guiCang(sum1, 8);
+            const xiaGua = guiCang(sum2, 8);
+            const dongYao = guiCang(sum2, 6);
+            const diZhi = guiCang((hour * 3600 + minute * 60 + second), 12);
+
+            // 第二步：确定本卦
+            const benGuaXu = (shangGua - 1) * 8 + xiaGua;
+            const benGua = GUA_64[benGuaXu] || GUA_64[1];
+
+            // 第三步：确定体卦和用卦
+            let tiNum, yongNum;
+            if (dongYao <= 3) {
+                tiNum = shangGua;
+                yongNum = xiaGua;
+            } else {
+                tiNum = xiaGua;
+                yongNum = shangGua;
+            }
+
+            // 第四步：判断体用关系
+            const tiYongRel = getTiYongRelation(tiNum, yongNum);
+
+            // 第五步：计算变卦
+            const benYao = [...benGua.yao];
+            benYao[dongYao - 1] = benYao[dongYao - 1] === 1 ? 0 : 1;
+            const bianShangYao = liuYaoToSanYao(benYao, 0, 3);
+            const bianXiaYao = liuYaoToSanYao(benYao, 3, 6);
+            const bianShangNum = triToNumber(bianShangYao);
+            const bianXiaNum = triToNumber(bianXiaYao);
+            const bianGuaXu = (bianShangNum - 1) * 8 + bianXiaNum;
+            const bianGua = GUA_64[bianGuaXu] || GUA_64[1];
+
+            // 第六步：计算互卦
+            const huShangYao = liuYaoToSanYao(benGua.yao, 2, 5);
+            const huXiaYao = liuYaoToSanYao(benGua.yao, 1, 4);
+            const huShangNum = triToNumber(huShangYao);
+            const huXiaNum = triToNumber(huXiaYao);
+            const huGuaXu = (huShangNum - 1) * 8 + huXiaNum;
+            const huGua = GUA_64[huGuaXu] || GUA_64[1];
+
+            // 返回所有卦象信息
+            return {
+                year, month, day, hour, minute, second,
+                shangGua, xiaGua, dongYao, diZhi,
+                benGuaXu, benGua,
+                tiNum, yongNum, tiYongRel,
+                bianGuaXu, bianGua,
+                huShangNum, huXiaNum, huGuaXu, huGua
+            };
+        }
+
+        // ============================================
+        // 彩票号码生成
+        // ============================================
+
+        function generateLottery(guaInfo) {
+            const { shangGua, xiaGua, dongYao, diZhi, 
+                    benGuaXu, tiNum, yongNum, tiYongRel,
+                    bianGuaXu, huShangNum, huXiaNum } = guaInfo;
+
+            // 双色球红球
+            const redCandidates = [
+                guiCang(benGuaXu, 33),
+                guiCang(bianGuaXu, 33),
+                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 33),
+                guiCang(huShangNum, 33),
+                guiCang(huXiaNum, 33),
+                guiCang(dongYao + diZhi, 33)
+            ];
+            const redBalls = tongChiPeiShu(redCandidates, 33).slice(0, 6);
+
+            // 双色球蓝球
+            const blueBall = tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 16);
+
+            // 大乐透前区
+            const frontCandidates = [
+                guiCang(benGuaXu, 35),
+                guiCang(bianGuaXu, 35),
+                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 35),
+                guiCang(dongYao * diZhi, 35),
+                guiCang(diZhi + dongYao, 35)
+            ];
+            const frontBalls = tongChiPeiShu(frontCandidates, 35).slice(0, 5);
+
+            // 大乐透后区
+            let backA = huShangNum;
+            let backB = huXiaNum + 4;
+            if (backB > 12) backB = backB - 12;
+            if (backA === backB) {
+                backB++;
+                if (backB > 12) backB = 1;
+            }
+            const backBalls = [backA, backB].sort((a, b) => a - b);
+
+            return {
+                redBalls,
+                blueBall,
+                frontBalls,
+                backBalls
+            };
+        }
+
+        // ============================================
+        // 界面展示
+        // ============================================
+
+        function renderBalls(containerId, balls, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = balls.map(ball => 
+                `<div class="ball ball-${type}">${ball}</div>`
+            ).join('');
+        }
+
+        function renderGuaInfo(containerId, guaInfo) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <p><strong>本卦：</strong>${guaInfo.benGua.name}（第${guaInfo.benGuaXu}卦）</p>
+                <p><strong>变卦：</strong>${guaInfo.bianGua.name}（第${guaInfo.bianGuaXu}卦）</p>
+                <p><strong>互卦：</strong>${guaInfo.huGua.name}（第${guaInfo.huGuaXu}卦）</p>
+                <p><strong>动爻：</strong>第${guaInfo.dongYao}爻</p>
+                <p><strong>体用关系：</strong>${guaInfo.tiYongRel.desc}</p>
+            `;
+        }
+
+        function renderDetail(containerId, guaInfo, lottery, type) {
+            const container = document.getElementById(containerId);
+            const isShuangse = type === 'shuangse';
+            
+            let html = '<div class="space-y-2">';
+            
+            if (isShuangse) {
+                html += `<p><strong>【双色球推导】</strong></p>`;
+                html += `<p>① 主卦卦序：${guaInfo.benGuaXu} → 归藏：${guiCang(guaInfo.benGuaXu, 33)}</p>`;
+                html += `<p>② 变卦卦序：${guaInfo.bianGuaXu} → 归藏：${guiCang(guaInfo.bianGuaXu, 33)}</p>`;
+                html += `<p>③ 体用${guaInfo.tiYongRel.type}：(${guaInfo.tiNum} ${getOperator(guaInfo.tiYongRel.type)} ${guaInfo.yongNum}) + ${guaInfo.dongYao} → ${tiYongBianShu(guaInfo.tiNum, guaInfo.yongNum, guaInfo.tiYongRel.type, guaInfo.dongYao, 33)}</p>`;
+                html += `<p>④ 互卦上卦：${guaInfo.huShangNum} → 归藏：${guiCang(guaInfo.huShangNum, 33)}</p>`;
+                html += `<p>⑤ 互卦下卦：${guaInfo.huXiaNum} → 归藏：${guiCang(guaInfo.huXiaNum, 33)}</p>`;
+                html += `<p>⑥ 动爻+时辰：${guaInfo.dongYao} + ${guaInfo.diZhi} = ${guaInfo.dongYao + guaInfo.diZhi} → 归藏：${guiCang(guaInfo.dongYao + guaInfo.diZhi, 33)}</p>`;
+                html += `<p class="mt-2"><strong>最终结果：</strong>红球 ${lottery.redBalls.join(', ')} + 蓝球 ${lottery.blueBall}</p>`;
+            } else {
+                html += `<p><strong>【大乐透推导】</strong></p>`;
+                html += `<p>① 主卦卦序：${guaInfo.benGuaXu} → 归藏：${guiCang(guaInfo.benGuaXu, 35)}</p>`;
+                html += `<p>② 变卦卦序：${guaInfo.bianGuaXu} → 归藏：${guiCang(guaInfo.bianGuaXu, 35)}</p>`;
+                html += `<p>③ 体用${guaInfo.tiYongRel.type}：(${guaInfo.tiNum} ${getOperator(guaInfo.tiYongRel.type)} ${guaInfo.yongNum}) + ${guaInfo.dongYao} → ${tiYongBianShu(guaInfo.tiNum, guaInfo.yongNum, guaInfo.tiYongRel.type, guaInfo.dongYao, 35)}</p>`;
+                html += `<p>④ 动爻×时辰：${guaInfo.dongYao} × ${guaInfo.diZhi} = ${guaInfo.dongYao * guaInfo.diZhi} → 归藏：${guiCang(guaInfo.dongYao * guaInfo.diZhi, 35)}</p>`;
+                html += `<p>⑤ 时辰+动爻：${guaInfo.diZhi} + ${guaInfo.dongYao} = ${guaInfo.diZhi + guaInfo.dongYao} → 归藏：${guiCang(guaInfo.diZhi + guaInfo.dongYao, 35)}</p>`;
+                html += `<p class="mt-2"><strong>最终结果：</strong>红球区 ${lottery.frontBalls.join(', ')} + 蓝球区 ${lottery.backBalls.join(', ')}</p>`;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function getOperator(relation) {
+            if (relation === '比和') return '×';
+            if (relation === '体生用' || relation === '用生体') return '+';
+            return '-';
+        }
+
+        function toggleDetail(type) {
+            const detail = document.getElementById(`detail${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            const btn = detail.previousElementSibling;
+            
+            if (detail.classList.contains('hidden')) {
+                detail.classList.remove('hidden');
+                btn.textContent = '[ 收起详细推导 ]';
+            } else {
+                detail.classList.add('hidden');
+                btn.textContent = '[ 查看详细推导 ]';
+            }
+        }
+
+        // 主函数
+        function qiGua() {
+            const guaInfo = calculateGua();
+            const lottery = generateLottery(guaInfo);
+
+            document.getElementById('resultSection').classList.remove('hidden');
+            
+            renderBalls('redBalls', lottery.redBalls, 'red');
+            renderBalls('blueBalls', [lottery.blueBall], 'blue');
+            renderBalls('frontBalls', lottery.frontBalls, 'red');
+            renderBalls('backBalls', lottery.backBalls, 'blue');
+            
+            renderGuaInfo('guaInfoShuangse', guaInfo);
+            renderGuaInfo('guaInfoDale', guaInfo);
+            
+            renderDetail('detailShuangse', guaInfo, lottery, 'shuangse');
+            renderDetail('detailDale', guaInfo, lottery, 'dale');
+        }
+    </script>
+</body>
+</html>
