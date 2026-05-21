@@ -305,16 +305,27 @@
         /**
          * 同池配数
          * 同号不宜并存于同池，如卦中不重爻
-         * 既占此位，则移下一位
+         * 既占此位，则移下一位（随机方向，避免连续数字）
          */
         function tongChiPeiShu(candidates, maxVal) {
             let result = [];
             for (let val of candidates) {
                 let v = val;
-                while (result.includes(v)) {
-                    v++;
+                let attempts = 0;
+                const maxAttempts = maxVal;
+                
+                while (result.includes(v) && attempts < maxAttempts) {
+                    // 随机选择方向，避免连续数字
+                    const direction = Math.random() > 0.5 ? 1 : -1;
+                    v += direction;
+                    
+                    // 处理边界
                     if (v > maxVal) v = 1;
+                    if (v < 1) v = maxVal;
+                    
+                    attempts++;
                 }
+                
                 result.push(v);
             }
             return result.sort((a, b) => a - b);
