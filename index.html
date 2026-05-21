@@ -185,8 +185,22 @@
         <!-- 底部免责 -->
         <footer class="mt-12 text-center text-sm text-[var(--text-secondary)]">
             <p>温馨提示：彩票开奖为独立随机事件，本工具基于梅花易数算法生成号码，仅供文化娱乐与思维练习，不构成任何投注建议。请理性购彩，量力而行。</p>
+            <div class="mt-4 flex justify-center gap-4 text-xs">
+                <span id="busuanzi_container_site_pv">
+                    访问 <span id="busuanzi_value_site_pv">0</span> 次
+                </span>
+                <span id="busuanzi_container_site_uv">
+                    访客 <span id="busuanzi_value_site_uv">0</span> 人
+                </span>
+                <span id="qigua_count">
+                    起卦 <span id="qigua_times">0</span> 次
+                </span>
+            </div>
         </footer>
     </div>
+
+    <!-- 不蒜子统计 -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
     <script>
         // ============================================
@@ -608,8 +622,29 @@
             }
         }
 
+        // 起卦次数统计
+        function getQiguaCount() {
+            return parseInt(localStorage.getItem('qiguaCount') || '0');
+        }
+        
+        function saveQiguaCount(count) {
+            localStorage.setItem('qiguaCount', count.toString());
+        }
+        
+        function updateQiguaDisplay() {
+            const count = getQiguaCount();
+            document.getElementById('qigua_times').textContent = count;
+        }
+        
+        function incrementQiguaCount() {
+            const count = getQiguaCount() + 1;
+            saveQiguaCount(count);
+            updateQiguaDisplay();
+        }
+
         // 主函数
         function qiGua() {
+            incrementQiguaCount();
             const guaInfo = calculateGua();
             const lottery = generateLottery(guaInfo);
 
@@ -626,6 +661,8 @@
             renderDetail('detailShuangse', guaInfo, lottery, 'shuangse');
             renderDetail('detailDale', guaInfo, lottery, 'dale');
         }
+        
+        document.addEventListener('DOMContentLoaded', updateQiguaDisplay);
     </script>
 </body>
 </html>
