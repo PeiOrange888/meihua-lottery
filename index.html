@@ -263,8 +263,19 @@
         </footer>
     </div>
 
-    <!-- 不蒜子统计 -->
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <!-- 不蒜子统计（仅在 http/https 协议下加载）-->
+    <script>
+        if (window.location.protocol !== 'file:') {
+            var script = document.createElement('script');
+            script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+            script.async = true;
+            document.head.appendChild(script);
+        } else {
+            // file:// 协议下显示占位数据
+            document.getElementById('busuanzi_value_site_pv').textContent = '--';
+            document.getElementById('busuanzi_value_site_uv').textContent = '--';
+        }
+    </script>
 
     <script>
         // ============================================
