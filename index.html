@@ -104,6 +104,55 @@
             margin-top: 1rem;
         }
         
+        .qiyun-card {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        
+        .qiyun-daji {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+        }
+        
+        .qiyun-ji {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.2) 0%, rgba(0, 255, 0, 0.1) 100%);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+        
+        .qiyun-ping {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid #c0c0c0;
+            color: #c0c0c0;
+        }
+        
+        .qiyun-xiaoxiong {
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.2) 0%, rgba(255, 165, 0, 0.1) 100%);
+            border: 1px solid #ffa500;
+            color: #ffa500;
+        }
+        
+        .qiyun-daxiong {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(255, 0, 0, 0.1) 100%);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+        }
+        
+        .qiyun-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .qiyun-advice {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+        
         @media (max-width: 768px) {
             .ball {
                 width: 40px;
@@ -122,6 +171,21 @@
             </h1>
             <p class="text-xl text-[var(--text-secondary)]">仅供娱乐</p>
         </header>
+
+        <!-- 气运测试区 -->
+        <section class="text-center mb-12">
+            <div class="inline-block gua-card chinese-border rounded-lg p-6">
+                <h3 class="section-title text-xl font-bold mb-4">今日气运</h3>
+                <div id="qiyunDisplay" class="mb-4">
+                    <div id="qiyunStatus" class="text-lg text-[var(--text-secondary)]">
+                        点击下方按钮测试今日气运
+                    </div>
+                </div>
+                <button id="qiyunBtn" class="btn-qigua rounded-lg" onclick="testQiYun()">
+                    测试气运
+                </button>
+            </div>
+        </section>
 
         <!-- 起卦按钮区 -->
         <section class="text-center mb-12">
@@ -300,6 +364,18 @@
         const TRI_TO_NUM = {
             '111': 1, '011': 2, '101': 3, '001': 4,
             '110': 5, '010': 6, '100': 7, '000': 8
+        };
+        
+        // 先天数到五行映射
+        const WU_XING = {
+            1: '金',  // 乾
+            2: '金',  // 兑
+            3: '火',  // 离
+            4: '木',  // 震
+            5: '木',  // 巽
+            6: '水',  // 坎
+            7: '土',  // 艮
+            8: '土'   // 坤
         };
 
         // ============================================
@@ -620,6 +696,123 @@
                 detail.classList.add('hidden');
                 btn.textContent = '[ 查看详细推导 ]';
             }
+        }
+
+        // ============================================
+        // 气运计算模块
+        // ============================================
+        
+        const QIYUN_CONFIG = {
+            daji: { min: 80, max: 100, name: '大吉', color: 'daji', 
+                    desc: '今日气运旺盛，诸事顺遂，宜积极进取',
+                    advice: '今日气运极佳，可适度增加投注，但仍需保持理性' },
+            ji: { min: 60, max: 79, name: '吉', color: 'ji',
+                  desc: '今日气运平顺，小有收获，宜稳健行事',
+                  advice: '气运不错，可以正常投注' },
+            ping: { min: 40, max: 59, name: '平', color: 'ping',
+                    desc: '今日气运一般，宜守成勿进，谨慎行事',
+                    advice: '气运平平，请谨慎投注，量力而行' },
+            xiaoxiong: { min: 20, max: 39, name: '小凶', color: 'xiaoxiong',
+                        desc: '今日气运欠佳，宜静不宜动，减少投资',
+                        advice: '气运不佳，建议减少投注金额或暂停' },
+            daxiong: { min: 0, max: 19, name: '大凶', color: 'daxiong',
+                      desc: '今日气运低迷，诸事不宜，建议休息',
+                      advice: '今日气运低迷，建议今日不购彩' }
+        };
+        
+        function getQiYunCacheKey() {
+            const now = new Date();
+            return `qiyun_${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}`;
+        }
+        
+        function getQiYunLevel(score) {
+            if (score >= 80) return QIYUN_CONFIG.daji;
+            if (score >= 60) return QIYUN_CONFIG.ji;
+            if (score >= 40) return QIYUN_CONFIG.ping;
+            if (score >= 20) return QIYUN_CONFIG.xiaoxiong;
+            return QIYUN_CONFIG.daxiong;
+        }
+        
+        function isTiGuaDeShi(tiNum) {
+            const month = new Date().getMonth() + 1;
+            const tiWuXing = WU_XING[tiNum];
+            
+            const season = month >= 3 && month <= 5 ? 'spring' :
+                          month >= 6 && month <= 8 ? 'summer' :
+                          month >= 9 && month <= 11 ? 'autumn' : 'winter';
+            
+            const wuxingSeason = {
+                spring: '木',
+                summer: '火',
+                autumn: '金',
+                winter: '水'
+            };
+            
+            return tiWuXing === wuxingSeason[season];
+        }
+        
+        function calculateQiYunScore(guaInfo) {
+            let score = 50;
+            
+            const relation = guaInfo.tiYongRel.type;
+            if (relation === '用生体') score += 30;
+            else if (relation === '体克用') score += 15;
+            else if (relation === '比和') score += 10;
+            else if (relation === '体生用') score -= 15;
+            else if (relation === '用克体') score -= 30;
+            
+            if (isTiGuaDeShi(guaInfo.tiNum)) {
+                score += 10;
+            }
+            
+            return Math.max(0, Math.min(100, score));
+        }
+        
+        async function testQiYun() {
+            const cacheKey = getQiYunCacheKey();
+            const cached = localStorage.getItem(cacheKey);
+            
+            if (cached) {
+                const qiyun = JSON.parse(cached);
+                displayQiYun(qiyun);
+                return;
+            }
+            
+            const guaInfo = calculateGua();
+            const score = calculateQiYunScore(guaInfo);
+            const level = getQiYunLevel(score);
+            
+            const qiyun = {
+                score: score,
+                level: level,
+                guaInfo: {
+                    benGua: guaInfo.benGua.name,
+                    tiYong: guaInfo.tiYongRel.desc
+                }
+            };
+            
+            localStorage.setItem(cacheKey, JSON.stringify(qiyun));
+            displayQiYun(qiyun);
+        }
+        
+        function displayQiYun(qiyun) {
+            const container = document.getElementById('qiyunDisplay');
+            const level = qiyun.level;
+            
+            container.innerHTML = `
+                <div class="qiyun-card qiyun-${level.color}">
+                    <div class="text-2xl font-bold mb-2">${level.name}</div>
+                    <div class="qiyun-score">${qiyun.score}分</div>
+                    <p class="mt-2">${level.desc}</p>
+                    <div class="qiyun-advice">${level.advice}</div>
+                </div>
+            `;
+        }
+        
+        function getCurrentQiYun() {
+            const cacheKey = getQiYunCacheKey();
+            const cached = localStorage.getItem(cacheKey);
+            return cached ? JSON.parse(cached) : null;
         }
 
         // 起卦次数统计（使用 JSONBin.io 存储）
