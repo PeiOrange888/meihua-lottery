@@ -1033,18 +1033,40 @@
         // 预测记录管理模块
         // ============================================
 
-        // JSONBin 配置（用于存储预测记录）
+        // JSONBin 配置（可选用于跨设备同步，主要使用 localStorage）
         const PREDICTION_BIN_ID = '6a8f345cea5a733b12f8e3ea';
         const PREDICTION_URL = `https://api.jsonbin.io/v3/b/${PREDICTION_BIN_ID}`;
 
         // 彩票API配置
         const LOTTERY_API_URL = 'https://api.huiniao.top/interface/home/lotteryHistory';
 
-        // 预测记录数据结构
+        // 预测记录数据结构（主要从 localStorage 加载）
         let predictionData = {
             ssq: { currentPeriod: '', records: [], result: null },
             dlt: { currentPeriod: '', records: [], result: null }
         };
+
+        // 从 localStorage 加载数据
+        function loadFromLocalStorage() {
+            try {
+                const ssqData = localStorage.getItem('prediction_ssq');
+                const dltData = localStorage.getItem('prediction_dlt');
+                
+                if (ssqData) predictionData.ssq = JSON.parse(ssqData);
+                if (dltData) predictionData.dlt = JSON.parse(dltData);
+            } catch (error) {
+                console.error('从 localStorage 加载失败:', error);
+            }
+        }
+
+        // 保存到 localStorage
+        function saveToLocalStorage(type) {
+            try {
+                localStorage.setItem(`prediction_${type}`, JSON.stringify(predictionData[type]));
+            } catch (error) {
+                console.error('保存到 localStorage 失败:', error);
+            }
+        }
 
         // 获取当前期号
         async function getCurrentPeriod(type) {
@@ -1143,6 +1165,8 @@
 
         // 加载预测记录
         async function loadPredictionData(type) {
+            // 优先从 localStorage 加载
+            loadFromLocalStorage();
             try {
                 const response = await fetch(PREDICTION_URL, {
                     headers: { 'X-Master-Key': JSONBIN_API_KEY }
@@ -1153,29 +1177,27 @@
                 }
             } catch (error) {
                 console.error('加载预测记录失败:', error);
-                // 降级到 localStorage
-                const localData = localStorage.getItem(`prediction_${type}`);
-                if (localData) {
-                    predictionData[type] = JSON.parse(localData);
-                }
+                // 降级到 localStorage（已在前面加载）
             }
         }
 
         // 保存预测记录
         async function savePrediction(type, lottery) {
-            try {
-                await loadPredictionData(type);
-                
-                const record = {
-                    id: `pred_${Date.now()}`,
-                    timestamp: Date.now(),
-                    redBalls: type === 'ssq' ? lottery.redBalls : lottery.frontBalls,
-                    blueBalls: type === 'ssq' ? [lottery.blueBall] : lottery.backBalls,
-                    matched: null
-                };
+            const record = {
+                id: `pred_${Date.now()}`,
+                timestamp: Date.now(),
+                redBalls: type === 'ssq' ? lottery.redBalls : lottery.frontBalls,
+                blueBalls: type === 'ssq' ? [lottery.blueBall] : lottery.backBalls,
+                matched: null
+            };
 
-                predictionData[type].records.push(record);
-                
+            predictionData[type].records.push(record);
+            
+            // 保存到 localStorage（立即生效）
+            saveToLocalStorage(type);
+            
+            // 尝试保存到 JSONBin（后台同步，不阻塞）
+            try {
                 await fetch(PREDICTION_URL, {
                     method: 'PUT',
                     headers: {
@@ -1184,19 +1206,8 @@
                     },
                     body: JSON.stringify(predictionData)
                 });
-
-                localStorage.setItem(`prediction_${type}`, JSON.stringify(predictionData[type]));
             } catch (error) {
-                console.error('保存预测记录失败:', error);
-                // 降级到 localStorage
-                predictionData[type].records.push({
-                    id: `pred_${Date.now()}`,
-                    timestamp: Date.now(),
-                    redBalls: type === 'ssq' ? lottery.redBalls : lottery.frontBalls,
-                    blueBalls: type === 'ssq' ? [lottery.blueBall] : lottery.backBalls,
-                    matched: null
-                });
-                localStorage.setItem(`prediction_${type}`, JSON.stringify(predictionData[type]));
+                console.error('保存到 JSONBin 失败:', error);
             }
         }
 
@@ -1218,6 +1229,10 @@
 
         // 保存预测数据（批量）
         async function savePredictionData(type) {
+            // 保存到 localStorage（立即生效）
+            saveToLocalStorage(type);
+            
+            // 尝试保存到 JSONBin（后台同步）
             try {
                 await fetch(PREDICTION_URL, {
                     method: 'PUT',
@@ -1227,9 +1242,8 @@
                     },
                     body: JSON.stringify(predictionData)
                 });
-                localStorage.setItem(`prediction_${type}`, JSON.stringify(predictionData[type]));
             } catch (error) {
-                localStorage.setItem(`prediction_${type}`, JSON.stringify(predictionData[type]));
+                console.error('保存到 JSONBin 失败:', error);
             }
         }
 
@@ -1306,8 +1320,8 @@
 
         // 初始化预测记录模块
         async function initPredictionModule() {
-            await loadPredictionData('ssq');
-            await loadPredictionData('dlt');
+            // 优先从 localStorage 加载数据
+            loadFromLocalStorage();
             
             await checkPeriod('ssq');
             await checkPeriod('dlt');
@@ -1315,6 +1329,11 @@
             document.getElementById('ssqPeriod').textContent = `期号：${predictionData.ssq.currentPeriod || '--'}`;
             document.getElementById('dltPeriod').textContent = `期号：${predictionData.dlt.currentPeriod || '--'}`;
             
+            // 刷新展示（先显示本地已有数据）
+            renderPredictions('ssq');
+            renderPredictions('dlt');
+            
+            // 异步获取开奖结果
             await refreshLotteryData('ssq');
             await refreshLotteryData('dlt');
             
