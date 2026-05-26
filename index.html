@@ -954,18 +954,12 @@
             return cached ? JSON.parse(cached) : null;
         }
 
-        // 起卦次数统计（使用 JSONBin.io 存储）
-        const JSONBIN_API_KEY = '$2a$10$xYgkIxODXR/vufMeluISbOn2PvCttjQAf.zX5NQL6OOZbeaS2EggG';
-        const JSONBIN_BIN_ID = '6a8f345cea5a733b12f8e3ea';
-        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+        // 起卦次数和预测记录都使用同一个 JSONBin（在下面统一配置）
         
         async function getQiguaCount() {
             try {
-                const response = await fetch(JSONBIN_URL, {
-                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
-                });
-                const data = await response.json();
-                return data.record.qigua_count || 0;
+                await loadAllData();
+                return predictionData.qigua_count || 0;
             } catch (error) {
                 return parseInt(localStorage.getItem('qiguaCount') || '0');
             }
@@ -973,23 +967,10 @@
         
         async function incrementQiguaCount() {
             try {
-                const currentCount = await getQiguaCount();
-                const newCount = currentCount + 1;
-                
-                await fetch(JSONBIN_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        qigua_count: newCount,
-                        last_update: new Date().toISOString()
-                    })
-                });
-                
-                localStorage.setItem('qiguaCount', newCount.toString());
-                updateQiguaDisplay(newCount);
+                await loadAllData();
+                predictionData.qigua_count = (predictionData.qigua_count || 0) + 1;
+                await saveAllData();
+                updateQiguaDisplay(predictionData.qigua_count);
             } catch (error) {
                 const count = parseInt(localStorage.getItem('qiguaCount') || '0') + 1;
                 localStorage.setItem('qiguaCount', count.toString());
@@ -1033,38 +1014,53 @@
         // 预测记录管理模块
         // ============================================
 
-        // JSONBin 配置（可选用于跨设备同步，主要使用 localStorage）
-        const PREDICTION_BIN_ID = '6a8f345cea5a733b12f8e3ea';
-        const PREDICTION_URL = `https://api.jsonbin.io/v3/b/${PREDICTION_BIN_ID}`;
+        // JSONBin 配置（复用现有 bin，所有访问者共享）
+        const JSONBIN_API_KEY = '$2a$10$xYgkIxODXR/vufMeluISbOn2PvCttjQAf.zX5NQL6OOZbeaS2EggG';
+        const JSONBIN_BIN_ID = '6a8f345cea5a733b12f8e3ea';
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
         // 彩票API配置
         const LOTTERY_API_URL = 'https://api.huiniao.top/interface/home/lotteryHistory';
 
-        // 预测记录数据结构（主要从 localStorage 加载）
+        // 预测记录数据结构
         let predictionData = {
             ssq: { currentPeriod: '', records: [], result: null },
-            dlt: { currentPeriod: '', records: [], result: null }
+            dlt: { currentPeriod: '', records: [], result: null },
+            qigua_count: 0  // 保留起卦次数
         };
 
-        // 从 localStorage 加载数据
-        function loadFromLocalStorage() {
+        // 从 JSONBin 加载所有数据（所有访问者共享）
+        async function loadAllData() {
             try {
-                const ssqData = localStorage.getItem('prediction_ssq');
-                const dltData = localStorage.getItem('prediction_dlt');
+                const response = await fetch(JSONBIN_URL, {
+                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
+                });
+                const data = await response.json();
                 
-                if (ssqData) predictionData.ssq = JSON.parse(ssqData);
-                if (dltData) predictionData.dlt = JSON.parse(dltData);
+                if (data.record) {
+                    // 兼容旧数据结构
+                    predictionData.qigua_count = data.record.qigua_count || 0;
+                    predictionData.ssq = data.record.ssq || { currentPeriod: '', records: [], result: null };
+                    predictionData.dlt = data.record.dlt || { currentPeriod: '', records: [], result: null };
+                }
             } catch (error) {
-                console.error('从 localStorage 加载失败:', error);
+                console.error('从 JSONBin 加载失败:', error);
             }
         }
 
-        // 保存到 localStorage
-        function saveToLocalStorage(type) {
+        // 保存所有数据到 JSONBin（所有访问者共享）
+        async function saveAllData() {
             try {
-                localStorage.setItem(`prediction_${type}`, JSON.stringify(predictionData[type]));
+                await fetch(JSONBIN_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'X-Master-Key': JSONBIN_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(predictionData)
+                });
             } catch (error) {
-                console.error('保存到 localStorage 失败:', error);
+                console.error('保存到 JSONBin 失败:', error);
             }
         }
 
@@ -1165,20 +1161,8 @@
 
         // 加载预测记录
         async function loadPredictionData(type) {
-            // 优先从 localStorage 加载
-            loadFromLocalStorage();
-            try {
-                const response = await fetch(PREDICTION_URL, {
-                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
-                });
-                const data = await response.json();
-                if (data.record && data.record[type]) {
-                    predictionData[type] = data.record[type];
-                }
-            } catch (error) {
-                console.error('加载预测记录失败:', error);
-                // 降级到 localStorage（已在前面加载）
-            }
+            // 从 JSONBin 加载（所有访问者共享）
+            await loadAllData();
         }
 
         // 保存预测记录
@@ -1193,22 +1177,8 @@
 
             predictionData[type].records.push(record);
             
-            // 保存到 localStorage（立即生效）
-            saveToLocalStorage(type);
-            
-            // 尝试保存到 JSONBin（后台同步，不阻塞）
-            try {
-                await fetch(PREDICTION_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(predictionData)
-                });
-            } catch (error) {
-                console.error('保存到 JSONBin 失败:', error);
-            }
+            // 保存到 JSONBin（所有访问者共享）
+            await saveAllData();
         }
 
         // 检查并更新开奖周期
@@ -1223,28 +1193,14 @@
                     result: null
                 };
                 
-                await savePredictionData(type);
+                await saveAllData();
             }
         }
 
         // 保存预测数据（批量）
         async function savePredictionData(type) {
-            // 保存到 localStorage（立即生效）
-            saveToLocalStorage(type);
-            
-            // 尝试保存到 JSONBin（后台同步）
-            try {
-                await fetch(PREDICTION_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(predictionData)
-                });
-            } catch (error) {
-                console.error('保存到 JSONBin 失败:', error);
-            }
+            // 保存到 JSONBin（所有访问者共享）
+            await saveAllData();
         }
 
         // 渲染预测记录
@@ -1320,8 +1276,8 @@
 
         // 初始化预测记录模块
         async function initPredictionModule() {
-            // 优先从 localStorage 加载数据
-            loadFromLocalStorage();
+            // 从 JSONBin 加载数据（所有访问者共享）
+            await loadAllData();
             
             await checkPeriod('ssq');
             await checkPeriod('dlt');
@@ -1329,7 +1285,7 @@
             document.getElementById('ssqPeriod').textContent = `期号：${predictionData.ssq.currentPeriod || '--'}`;
             document.getElementById('dltPeriod').textContent = `期号：${predictionData.dlt.currentPeriod || '--'}`;
             
-            // 刷新展示（先显示本地已有数据）
+            // 刷新展示
             renderPredictions('ssq');
             renderPredictions('dlt');
             
