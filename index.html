@@ -160,12 +160,25 @@
         }
 
         .prediction-scroll {
-            animation: scrollUp 30s linear infinite;
+            animation: scrollUp 45s linear infinite;
+            /* 让滚动更平滑，避免卡顿 */
+            will-change: transform;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
         @keyframes scrollUp {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
+            0% { 
+                transform: translateY(0); 
+            }
+            100% { 
+                transform: translateY(-50%); 
+            }
+        }
+
+        /* 鼠标悬停时暂停滚动，方便查看 */
+        .prediction-container:hover .prediction-scroll {
+            animation-play-state: paused;
         }
 
         .prediction-item {
@@ -1211,7 +1224,15 @@
 
             if (records.length === 0) {
                 container.innerHTML = '<div class="text-center text-[var(--text-secondary)] py-4">暂无预测记录</div>';
+                container.classList.remove('prediction-scroll');
                 return;
+            }
+
+            // 只有当记录足够多时才滚动
+            if (records.length < 3) {
+                container.classList.remove('prediction-scroll');
+            } else {
+                container.classList.add('prediction-scroll');
             }
 
             let html = '';
@@ -1232,8 +1253,12 @@
                 </div>`;
             });
 
-            // 复制一份用于无缝滚动
-            container.innerHTML = html + html;
+            // 只有当记录足够多时才复制用于无缝滚动
+            if (records.length >= 3) {
+                container.innerHTML = html + html;
+            } else {
+                container.innerHTML = html;
+            }
         }
 
         // 渲染迷你号码球
