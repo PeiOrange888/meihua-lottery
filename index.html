@@ -1044,6 +1044,21 @@
 
         // 从 JSONBin 加载所有数据（所有访问者共享）
         async function loadAllData() {
+            // 首先尝试从 localStorage 加载（快速，本地优先）
+            const localData = localStorage.getItem('meihuaLotteryData');
+            if (localData) {
+                try {
+                    const parsed = JSON.parse(localData);
+                    predictionData.qigua_count = parsed.qigua_count || 0;
+                    predictionData.ssq = parsed.ssq || { currentPeriod: '', records: [], result: null };
+                    predictionData.dlt = parsed.dlt || { currentPeriod: '', records: [], result: null };
+                    return; // 如果 localStorage 有数据，直接使用
+                } catch (e) {
+                    console.error('解析 localStorage 数据失败:', e);
+                }
+            }
+            
+            // 如果 localStorage 没有数据，从 JSONBin 加载
             try {
                 const response = await fetch(JSONBIN_URL, {
                     headers: { 'X-Master-Key': JSONBIN_API_KEY }
@@ -1051,10 +1066,12 @@
                 const data = await response.json();
                 
                 if (data.record) {
-                    // 兼容旧数据结构
                     predictionData.qigua_count = data.record.qigua_count || 0;
                     predictionData.ssq = data.record.ssq || { currentPeriod: '', records: [], result: null };
                     predictionData.dlt = data.record.dlt || { currentPeriod: '', records: [], result: null };
+                    
+                    // 同时保存到 localStorage 作为备份
+                    localStorage.setItem('meihuaLotteryData', JSON.stringify(predictionData));
                 }
             } catch (error) {
                 console.error('从 JSONBin 加载失败:', error);
@@ -1074,6 +1091,13 @@
                 });
             } catch (error) {
                 console.error('保存到 JSONBin 失败:', error);
+            }
+            
+            // 同时保存到 localStorage 作为本地备份
+            try {
+                localStorage.setItem('meihuaLotteryData', JSON.stringify(predictionData));
+            } catch (error) {
+                console.error('保存到 localStorage 失败:', error);
             }
         }
 
