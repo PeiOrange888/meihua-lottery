@@ -1243,9 +1243,9 @@
                 html += `<div class="prediction-item">
                     <div class="flex items-center gap-1">
                         <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
-                        ${renderMiniBalls(record.redBalls, 'red', matchResult?.matchedRed, result?.redBalls)}
+                        ${renderMiniBalls(record.redBalls, 'red', result?.redBalls)}
                         <span class="text-[var(--text-secondary)] mx-1">+</span>
-                        ${renderMiniBalls(record.blueBalls, 'blue', matchResult?.matchedBlue, result?.blueBalls)}
+                        ${renderMiniBalls(record.blueBalls, 'blue', result?.blueBalls)}
                     </div>
                     <div>
                         ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="prize-badge prize-none">待开奖</span>'}
@@ -1262,8 +1262,9 @@
         }
 
         // 渲染迷你号码球
-        function renderMiniBalls(balls, type, matched, winningBalls) {
+        function renderMiniBalls(balls, type, winningBalls) {
             return balls.map(ball => {
+                // 只有当有开奖结果时，才检查是否匹配
                 const isMatched = winningBalls && winningBalls.includes(ball);
                 const ballClass = isMatched ? `ball-${type} matched-number` : `ball-${type}`;
                 return `<div class="ball ${ballClass}" style="width: 28px; height: 28px; font-size: 0.8rem;">${ball}</div>`;
