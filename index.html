@@ -1264,8 +1264,9 @@
         // 渲染迷你号码球
         function renderMiniBalls(balls, type, winningBalls) {
             return balls.map(ball => {
-                // 只有当有开奖结果时，才检查是否匹配
-                const isMatched = winningBalls && winningBalls.includes(ball);
+                // 只有当有开奖结果且有开奖号码时，才检查是否匹配
+                const hasWinningBalls = winningBalls && Array.isArray(winningBalls) && winningBalls.length > 0;
+                const isMatched = hasWinningBalls && winningBalls.includes(ball);
                 const ballClass = isMatched ? `ball-${type} matched-number` : `ball-${type}`;
                 return `<div class="ball ${ballClass}" style="width: 28px; height: 28px; font-size: 0.8rem;">${ball}</div>`;
             }).join('');
