@@ -1279,12 +1279,24 @@
             
             // 期号变化才清空记录
             if (predictionData[type].currentPeriod !== currentPeriod) {
-                // 新周期开始，先保存上一期到历史
+                // 获取上一期的开奖结果（用于匹配）
+                const lastResult = await getLotteryResult(type);
+                
+                // 新周期开始，先保存上一期到历史（并进行中奖匹配）
                 if (predictionData[type].records.length > 0) {
+                    // 对上一期记录进行中奖匹配
+                    const matchedRecords = predictionData[type].records.map(record => {
+                        if (lastResult) {
+                            const matchResult = type === 'ssq' ? matchSSQ(record, lastResult) : matchDLT(record, lastResult);
+                            return { ...record, matchResult };
+                        }
+                        return record;
+                    });
+                    
                     const historyItem = {
                         period: predictionData[type].currentPeriod,
-                        records: [...predictionData[type].records],
-                        result: predictionData[type].result,
+                        records: matchedRecords,
+                        result: lastResult,
                         endTime: Date.now()
                     };
                     predictionData[type].history.unshift(historyItem);
@@ -1330,18 +1342,16 @@
 
             let html = '';
             records.forEach((record, index) => {
-                const matchResult = result ? (type === 'ssq' ? matchSSQ(record, result) : matchDLT(record, result)) : null;
-                const prize = matchResult?.prize;
-                
+                // 当前期的预测记录不进行中奖匹配（应该匹配下一期），始终显示"待开奖"
                 html += `<div class="prediction-item">
                     <div class="flex items-center gap-1">
                         <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
-                        ${renderMiniBalls(record.redBalls, 'red', result?.redBalls)}
+                        ${renderMiniBalls(record.redBalls, 'red', null)}
                         <span class="text-[var(--text-secondary)] mx-1">+</span>
-                        ${renderMiniBalls(record.blueBalls, 'blue', result?.blueBalls)}
+                        ${renderMiniBalls(record.blueBalls, 'blue', null)}
                     </div>
                     <div>
-                        ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="prize-badge prize-none">待开奖</span>'}
+                        <span class="prize-badge prize-none">待开奖</span>
                     </div>
                 </div>`;
             });
@@ -1383,8 +1393,8 @@
                 
                 html += `<div class="space-y-1">`;
                 item.records.forEach((record, index) => {
-                    const matchResult = item.result ? (type === 'ssq' ? matchSSQ(record, item.result) : matchDLT(record, item.result)) : null;
-                    const prize = matchResult?.prize;
+                    // 使用预先计算的 matchResult（在周期切换时已经计算过）
+                    const prize = record.matchResult?.prize;
                     
                     html += `<div class="flex items-center justify-between text-sm">
                         <div class="flex items-center gap-1">
@@ -1394,7 +1404,7 @@
                             ${renderMiniBalls(record.blueBalls, 'blue', item.result?.blueBalls)}
                         </div>
                         <div>
-                            ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="text-[var(--text-secondary)]">待开奖</span>'}
+                            ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="text-[var(--text-secondary)]">未开奖</span>'}
                         </div>
                     </div>`;
                 });
