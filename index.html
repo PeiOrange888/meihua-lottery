@@ -1126,7 +1126,7 @@
         // 保存所有数据到 JSONBin（所有访问者共享）
         async function saveAllData() {
             try {
-                await fetch(JSONBIN_URL, {
+                const response = await fetch(JSONBIN_URL, {
                     method: 'PUT',
                     headers: {
                         'X-Master-Key': JSONBIN_API_KEY,
@@ -1134,8 +1134,28 @@
                     },
                     body: JSON.stringify(predictionData)
                 });
+                
+                // 如果 404，尝试创建新的 bin
+                if (response.status === 404) {
+                    console.log('JSONBin 不存在，尝试创建新 bin...');
+                    const createResponse = await fetch('https://api.jsonbin.io/v3/b', {
+                        method: 'POST',
+                        headers: {
+                            'X-Master-Key': JSONBIN_API_KEY,
+                            'Content-Type': 'application/json',
+                            'X-Bin-Private': 'false' // 设为公开
+                        },
+                        body: JSON.stringify(predictionData)
+                    });
+                    if (createResponse.ok) {
+                        console.log('JSONBin 创建成功');
+                    } else {
+                        console.error('创建 JSONBin 失败:', createResponse.status);
+                    }
+                }
             } catch (error) {
-                console.error('保存到 JSONBin 失败:', error);
+                // JSONBin 不可用，不影响网站功能（数据会保存到 localStorage）
+                console.log('JSONBin 暂时不可用，数据已保存到本地');
             }
             
             // 同时保存到 localStorage 作为本地备份
@@ -1268,7 +1288,7 @@
         async function checkPeriod(type) {
             const currentPeriod = await getCurrentPeriod(type);
             
-            console.log(`[${type}] 当前期号: ${currentPeriod}, 存储的期号: ${predictionData[type].currentPeriod}, 记录数: ${predictionData[type].records.length}`);
+            // console.log(`[${type}] 当前期号: ${currentPeriod}, 存储的期号: ${predictionData[type].currentPeriod}, 记录数: ${predictionData[type].records.length}`);
             
             // 如果没有存储的期号，直接设置为当前期号，不清空记录（首次加载）
             if (!predictionData[type].currentPeriod) {
