@@ -12,6 +12,10 @@
 |--------|---------|---------|---------|
 | ![主界面](./screenshots/1.png) | ![气运测试](./screenshots/2.png) | ![号码生成](./screenshots/3.png) | ![详细推导](./screenshots/4.png) |
 
+| 福彩预测记录 | 体彩预测记录 | 历史中奖记录 |
+|-------------|-------------|-------------|
+| ![福彩预测记录](./screenshots/5.png) | ![体彩预测记录](./screenshots/6.png) | ![历史中奖记录](./screenshots/7.png) |
+
 ## 功能特点
 
 - 🔮 **一键起卦**：点击按钮即可根据当前时间起卦
@@ -276,7 +280,12 @@ function tongChiPeiShu(candidates, maxVal, dongYao) {
 meihua-lottery/
 ├── index.html          # 主文件（包含所有代码）
 ├── README.md           # 项目说明文档
-└── DEPLOY.md           # 部署指南
+├── DEPLOY.md           # 部署指南
+└── screenshots/        # 效果图截图目录
+    ├── 1.png
+    ├── 2.png
+    ├── 3.png
+    └── 4.png
 ```
 
 ## 注意事项
