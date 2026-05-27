@@ -1212,8 +1212,9 @@
         function matchDLT(prediction, result) {
             if (!result) return null;
             
-            const predReds = prediction.frontBalls;
-            const predBlues = prediction.backBalls;
+            // 记录中存储的是 redBalls 和 blueBalls（统一格式）
+            const predReds = prediction.redBalls || prediction.frontBalls;
+            const predBlues = prediction.blueBalls || prediction.backBalls;
             const resultReds = result.redBalls;
             const resultBlues = result.blueBalls;
 
