@@ -182,7 +182,7 @@ function tongChiPeiShu(candidates, maxVal, dongYao) {
 
 #### 数据存储
 
-- **JSONBin**：主存储，所有访问者共享预测记录
+- **Firebase Realtime Database**：主存储，所有访问者共享预测记录
 - **localStorage**：备用存储，网络不可用时使用
 
 ## 技术栈
