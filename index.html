@@ -1267,6 +1267,8 @@
         async function checkPeriod(type) {
             const currentPeriod = await getCurrentPeriod(type);
             
+            console.log(`[${type}] 当前期号: ${currentPeriod}, 存储的期号: ${predictionData[type].currentPeriod}`);
+            
             if (!predictionData[type].currentPeriod || predictionData[type].currentPeriod !== currentPeriod) {
                 // 新周期开始，先保存上一期到历史
                 if (predictionData[type].currentPeriod && predictionData[type].records.length > 0) {
