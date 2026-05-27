@@ -373,6 +373,27 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 历史中奖记录 -->
+            <section id="historySection" class="mt-12">
+                <h2 class="text-2xl font-bold text-center text-[var(--accent-gold)] mb-8">🏆 历史中奖记录</h2>
+                
+                <!-- 双色球历史 -->
+                <div class="gua-card chinese-border rounded-lg mb-8">
+                    <h3 class="text-xl font-bold text-[var(--accent-gold)] mb-4">福彩双色球 · 历史记录</h3>
+                    <div id="ssqHistory" class="space-y-4">
+                        <div class="text-center text-[var(--text-secondary)] py-4">暂无历史记录</div>
+                    </div>
+                </div>
+
+                <!-- 大乐透历史 -->
+                <div class="gua-card chinese-border rounded-lg mb-8">
+                    <h3 class="text-xl font-bold text-[var(--accent-gold)] mb-4">体彩大乐透 · 历史记录</h3>
+                    <div id="dltHistory" class="space-y-4">
+                        <div class="text-center text-[var(--text-secondary)] py-4">暂无历史记录</div>
+                    </div>
+                </div>
+            </section>
         </section>
 
         <!-- 底部免责 -->
@@ -1037,8 +1058,8 @@
 
         // 预测记录数据结构
         let predictionData = {
-            ssq: { currentPeriod: '', records: [], result: null },
-            dlt: { currentPeriod: '', records: [], result: null },
+            ssq: { currentPeriod: '', records: [], result: null, history: [] },
+            dlt: { currentPeriod: '', records: [], result: null, history: [] },
             qigua_count: 0  // 保留起卦次数
         };
 
@@ -1050,8 +1071,20 @@
                 try {
                     const parsed = JSON.parse(localData);
                     predictionData.qigua_count = parsed.qigua_count || 0;
-                    predictionData.ssq = parsed.ssq || { currentPeriod: '', records: [], result: null };
-                    predictionData.dlt = parsed.dlt || { currentPeriod: '', records: [], result: null };
+                    predictionData.ssq = { 
+                        currentPeriod: '', 
+                        records: [], 
+                        result: null, 
+                        history: [],
+                        ...(parsed.ssq || {}) 
+                    };
+                    predictionData.dlt = { 
+                        currentPeriod: '', 
+                        records: [], 
+                        result: null, 
+                        history: [],
+                        ...(parsed.dlt || {}) 
+                    };
                     return; // 如果 localStorage 有数据，直接使用
                 } catch (e) {
                     console.error('解析 localStorage 数据失败:', e);
@@ -1067,8 +1100,20 @@
                 
                 if (data.record) {
                     predictionData.qigua_count = data.record.qigua_count || 0;
-                    predictionData.ssq = data.record.ssq || { currentPeriod: '', records: [], result: null };
-                    predictionData.dlt = data.record.dlt || { currentPeriod: '', records: [], result: null };
+                    predictionData.ssq = { 
+                        currentPeriod: '', 
+                        records: [], 
+                        result: null, 
+                        history: [],
+                        ...(data.record.ssq || {}) 
+                    };
+                    predictionData.dlt = { 
+                        currentPeriod: '', 
+                        records: [], 
+                        result: null, 
+                        history: [],
+                        ...(data.record.dlt || {}) 
+                    };
                     
                     // 同时保存到 localStorage 作为备份
                     localStorage.setItem('meihuaLotteryData', JSON.stringify(predictionData));
@@ -1223,12 +1268,25 @@
             const currentPeriod = await getCurrentPeriod(type);
             
             if (!predictionData[type].currentPeriod || predictionData[type].currentPeriod !== currentPeriod) {
-                // 新周期开始，清空上一期记录并开始新记录
-                predictionData[type] = {
-                    currentPeriod: currentPeriod,
-                    records: [],
-                    result: null
-                };
+                // 新周期开始，先保存上一期到历史
+                if (predictionData[type].currentPeriod && predictionData[type].records.length > 0) {
+                    const historyItem = {
+                        period: predictionData[type].currentPeriod,
+                        records: [...predictionData[type].records],
+                        result: predictionData[type].result,
+                        endTime: Date.now()
+                    };
+                    predictionData[type].history.unshift(historyItem);
+                    // 最多保留最近10期历史
+                    if (predictionData[type].history.length > 10) {
+                        predictionData[type].history.pop();
+                    }
+                }
+                
+                // 开始新周期
+                predictionData[type].currentPeriod = currentPeriod;
+                predictionData[type].records = [];
+                predictionData[type].result = null;
                 
                 await saveAllData();
             }
@@ -1283,6 +1341,56 @@
             } else {
                 container.innerHTML = html;
             }
+            
+            // 同时渲染历史记录
+            renderHistory(type);
+        }
+
+        // 渲染历史记录
+        function renderHistory(type) {
+            const container = document.getElementById(`${type}History`);
+            const history = predictionData[type].history || [];
+            
+            if (history.length === 0) {
+                container.innerHTML = '<div class="text-center text-[var(--text-secondary)] py-4">暂无历史记录</div>';
+                return;
+            }
+            
+            let html = '';
+            history.forEach(item => {
+                html += `<div class="history-item border-b border-[var(--border-color)] pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-[var(--accent-gold)]">第 ${item.period} 期</span>
+                        <span class="text-sm text-[var(--text-secondary)]">${item.result ? '已开奖' : '未开奖'}</span>
+                    </div>`;
+                
+                if (item.result) {
+                    html += `<div class="text-sm text-[var(--text-secondary)] mb-2">
+                        开奖号码：${item.result.redBalls.join(', ')} + ${item.result.blueBalls.join(', ')} (${item.result.date})
+                    </div>`;
+                }
+                
+                html += `<div class="space-y-1">`;
+                item.records.forEach((record, index) => {
+                    const matchResult = item.result ? (type === 'ssq' ? matchSSQ(record, item.result) : matchDLT(record, item.result)) : null;
+                    const prize = matchResult?.prize;
+                    
+                    html += `<div class="flex items-center justify-between text-sm">
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
+                            ${renderMiniBalls(record.redBalls, 'red', item.result?.redBalls)}
+                            <span class="text-[var(--text-secondary)] mx-1">+</span>
+                            ${renderMiniBalls(record.blueBalls, 'blue', item.result?.blueBalls)}
+                        </div>
+                        <div>
+                            ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="text-[var(--text-secondary)]">待开奖</span>'}
+                        </div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            });
+            
+            container.innerHTML = html;
         }
 
         // 渲染迷你号码球
@@ -1301,9 +1409,9 @@
             const container = document.getElementById(`${type}ResultDisplay`);
             if (result) {
                 container.innerHTML = `<strong>开奖号码：</strong>
-                    <span class="ball ball-red" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-block; margin: 0 1px;">${result.redBalls.join('</span><span class="ball ball-red" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-block; margin: 0 1px;">')}</span>
+                    <span class="ball ball-red" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">${result.redBalls.join('</span><span class="ball ball-red" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">')}</span>
                     <span class="text-[var(--text-secondary)] mx-1">+</span>
-                    <span class="ball ball-blue" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-block; margin: 0 1px;">${result.blueBalls.join('</span><span class="ball ball-blue" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-block; margin: 0 1px;">')}</span>
+                    <span class="ball ball-blue" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">${result.blueBalls.join('</span><span class="ball ball-blue" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">')}</span>
                     <span class="text-[var(--text-secondary)] ml-2">(${result.date})</span>`;
             } else {
                 container.innerHTML = '开奖结果：待更新';
