@@ -988,7 +988,7 @@
             return cached ? JSON.parse(cached) : null;
         }
 
-        // 起卦次数和预测记录都使用同一个 JSONBin（在下面统一配置）
+        // 起卦次数和预测记录都使用 Firebase 存储（在下面统一配置）
         
         async function getQiguaCount() {
             try {
@@ -1048,10 +1048,8 @@
         // 预测记录管理模块
         // ============================================
 
-        // JSONBin 配置（复用现有 bin，所有访问者共享）
-        const JSONBIN_API_KEY = '$2a$10$xYgkIxODXR/vufMeluISbOn2PvCttjQAf.zX5NQL6OOZbeaS2EggG';
-        const JSONBIN_BIN_ID = '6a8f345cea5a733b12f8e3ea';
-        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+        // Firebase 存储配置
+        const FIREBASE_URL = 'https://meihua-abb40-default-rtdb.firebaseio.com/lottery.json';
 
         // 彩票API配置
         const LOTTERY_API_URL = 'https://api.huiniao.top/interface/home/lotteryHistory';
@@ -1063,68 +1061,51 @@
             qigua_count: 0  // 保留起卦次数
         };
 
-        // 从 JSONBin 加载所有数据（所有访问者共享）
+        // 从 Firebase 加载所有数据
         async function loadAllData() {
             try {
-                const response = await fetch(JSONBIN_URL, {
-                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
-                });
+                const response = await fetch(FIREBASE_URL, { headers: { 'Content-Type': 'application/json' } });
                 const data = await response.json();
                 
-                if (data.record) {
-                    predictionData.qigua_count = data.record.qigua_count || 0;
+                if (data) {
+                    predictionData.qigua_count = data.qigua_count || 0;
                     predictionData.ssq = { 
                         currentPeriod: '', 
                         records: [], 
                         result: null, 
                         history: [],
-                        ...(data.record.ssq || {}) 
+                        ...(data.ssq || {}) 
                     };
                     predictionData.dlt = { 
                         currentPeriod: '', 
                         records: [], 
                         result: null, 
                         history: [],
-                        ...(data.record.dlt || {}) 
+                        ...(data.dlt || {}) 
                     };
+                    console.log('成功从 Firebase 加载数据');
                 }
             } catch (error) {
-                console.error('从 JSONBin 加载失败:', error);
+                console.error('从 Firebase 加载数据失败:', error);
             }
         }
 
-        // 保存所有数据到 JSONBin（所有访问者共享）
+        // 保存所有数据到 Firebase
         async function saveAllData() {
             try {
-                const response = await fetch(JSONBIN_URL, {
+                const response = await fetch(FIREBASE_URL, {
                     method: 'PUT',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(predictionData)
                 });
                 
-                // 如果 404，尝试创建新的 bin
-                if (response.status === 404) {
-                    console.log('JSONBin 不存在，尝试创建新 bin...');
-                    const createResponse = await fetch('https://api.jsonbin.io/v3/b', {
-                        method: 'POST',
-                        headers: {
-                            'X-Master-Key': JSONBIN_API_KEY,
-                            'Content-Type': 'application/json',
-                            'X-Bin-Private': 'false' // 设为公开
-                        },
-                        body: JSON.stringify(predictionData)
-                    });
-                    if (createResponse.ok) {
-                        console.log('JSONBin 创建成功');
-                    } else {
-                        console.error('创建 JSONBin 失败:', createResponse.status);
-                    }
+                if (response.ok) {
+                    console.log('成功保存到 Firebase');
+                } else {
+                    console.error('保存到 Firebase 失败:', response.status);
                 }
             } catch (error) {
-                console.error('保存到 JSONBin 失败:', error);
+                console.error('保存到 Firebase 失败:', error);
             }
         }
 
@@ -1226,7 +1207,7 @@
 
         // 加载预测记录
         async function loadPredictionData(type) {
-            // 从 JSONBin 加载（所有访问者共享）
+            // 从 Firebase 加载（所有访问者共享）
             await loadAllData();
         }
 
@@ -1242,7 +1223,7 @@
 
             predictionData[type].records.push(record);
             
-            // 保存到 JSONBin（所有访问者共享）
+            // 保存到 Firebase（所有访问者共享）
             await saveAllData();
         }
 
@@ -1299,7 +1280,7 @@
 
         // 保存预测数据（批量）
         async function savePredictionData(type) {
-            // 保存到 JSONBin（所有访问者共享）
+            // 保存到 Firebase（所有访问者共享）
             await saveAllData();
         }
 
@@ -1458,7 +1439,7 @@
 
         // 初始化预测记录模块
         async function initPredictionModule() {
-            // 从 JSONBin 加载数据（所有访问者共享）
+            // 从 Firebase 加载数据（所有访问者共享）
             await loadAllData();
             
             await checkPeriod('ssq');
