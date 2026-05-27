@@ -1065,33 +1065,6 @@
 
         // 从 JSONBin 加载所有数据（所有访问者共享）
         async function loadAllData() {
-            // 首先尝试从 localStorage 加载（快速，本地优先）
-            const localData = localStorage.getItem('meihuaLotteryData');
-            if (localData) {
-                try {
-                    const parsed = JSON.parse(localData);
-                    predictionData.qigua_count = parsed.qigua_count || 0;
-                    predictionData.ssq = { 
-                        currentPeriod: '', 
-                        records: [], 
-                        result: null, 
-                        history: [],
-                        ...(parsed.ssq || {}) 
-                    };
-                    predictionData.dlt = { 
-                        currentPeriod: '', 
-                        records: [], 
-                        result: null, 
-                        history: [],
-                        ...(parsed.dlt || {}) 
-                    };
-                    return; // 如果 localStorage 有数据，直接使用
-                } catch (e) {
-                    console.error('解析 localStorage 数据失败:', e);
-                }
-            }
-            
-            // 如果 localStorage 没有数据，从 JSONBin 加载
             try {
                 const response = await fetch(JSONBIN_URL, {
                     headers: { 'X-Master-Key': JSONBIN_API_KEY }
@@ -1114,9 +1087,6 @@
                         history: [],
                         ...(data.record.dlt || {}) 
                     };
-                    
-                    // 同时保存到 localStorage 作为备份
-                    localStorage.setItem('meihuaLotteryData', JSON.stringify(predictionData));
                 }
             } catch (error) {
                 console.error('从 JSONBin 加载失败:', error);
@@ -1154,15 +1124,7 @@
                     }
                 }
             } catch (error) {
-                // JSONBin 不可用，不影响网站功能（数据会保存到 localStorage）
-                console.log('JSONBin 暂时不可用，数据已保存到本地');
-            }
-            
-            // 同时保存到 localStorage 作为本地备份
-            try {
-                localStorage.setItem('meihuaLotteryData', JSON.stringify(predictionData));
-            } catch (error) {
-                console.error('保存到 localStorage 失败:', error);
+                console.error('保存到 JSONBin 失败:', error);
             }
         }
 
