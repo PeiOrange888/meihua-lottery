@@ -282,10 +282,13 @@ meihua-lottery/
 ├── README.md           # 项目说明文档
 ├── DEPLOY.md           # 部署指南
 └── screenshots/        # 效果图截图目录
-    ├── 1.png
-    ├── 2.png
-    ├── 3.png
-    └── 4.png
+    ├── 1.png           # 主界面
+    ├── 2.png           # 气运测试
+    ├── 3.png           # 号码生成
+    ├── 4.png           # 详细推导
+    ├── 5.png           # 福彩预测记录
+    ├── 6.png           # 体彩预测记录
+    └── 7.png           # 历史中奖记录
 ```
 
 ## 注意事项
