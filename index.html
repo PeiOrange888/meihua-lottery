@@ -1267,11 +1267,19 @@
         async function checkPeriod(type) {
             const currentPeriod = await getCurrentPeriod(type);
             
-            console.log(`[${type}] 当前期号: ${currentPeriod}, 存储的期号: ${predictionData[type].currentPeriod}`);
+            console.log(`[${type}] 当前期号: ${currentPeriod}, 存储的期号: ${predictionData[type].currentPeriod}, 记录数: ${predictionData[type].records.length}`);
             
-            if (!predictionData[type].currentPeriod || predictionData[type].currentPeriod !== currentPeriod) {
+            // 如果没有存储的期号，直接设置为当前期号，不清空记录（首次加载）
+            if (!predictionData[type].currentPeriod) {
+                predictionData[type].currentPeriod = currentPeriod;
+                await saveAllData();
+                return;
+            }
+            
+            // 期号变化才清空记录
+            if (predictionData[type].currentPeriod !== currentPeriod) {
                 // 新周期开始，先保存上一期到历史
-                if (predictionData[type].currentPeriod && predictionData[type].records.length > 0) {
+                if (predictionData[type].records.length > 0) {
                     const historyItem = {
                         period: predictionData[type].currentPeriod,
                         records: [...predictionData[type].records],
