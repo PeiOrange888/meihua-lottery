@@ -1342,14 +1342,24 @@
 
             let html = '';
             records.forEach((record, index) => {
+                // 格式化时间（精确到秒）
+                const timeStr = new Date(record.timestamp).toLocaleString('zh-CN', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
                 // 当前期的预测记录不进行中奖匹配（应该匹配下一期），始终显示"待开奖"
                 html += `<div class="prediction-item">
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-1 flex-1">
                         <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
                         ${renderMiniBalls(record.redBalls, 'red', null)}
                         <span class="text-[var(--text-secondary)] mx-1">+</span>
                         ${renderMiniBalls(record.blueBalls, 'blue', null)}
                     </div>
+                    <div class="text-xs text-[var(--text-secondary)] mr-4">${timeStr}</div>
                     <div>
                         <span class="prize-badge prize-none">待开奖</span>
                     </div>
@@ -1396,13 +1406,23 @@
                     // 使用预先计算的 matchResult（在周期切换时已经计算过）
                     const prize = record.matchResult?.prize;
                     
+                    // 格式化时间（精确到秒）
+                    const timeStr = new Date(record.timestamp).toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    
                     html += `<div class="flex items-center justify-between text-sm">
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 flex-1">
                             <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
                             ${renderMiniBalls(record.redBalls, 'red', item.result?.redBalls)}
                             <span class="text-[var(--text-secondary)] mx-1">+</span>
                             ${renderMiniBalls(record.blueBalls, 'blue', item.result?.blueBalls)}
                         </div>
+                        <div class="text-xs text-[var(--text-secondary)] mr-4">${timeStr}</div>
                         <div>
                             ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="text-[var(--text-secondary)]">未开奖</span>'}
                         </div>
