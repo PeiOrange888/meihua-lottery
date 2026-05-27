@@ -1460,7 +1460,7 @@
         }
 
         // 修改主函数，保存预测记录
-        function qiGua() {
+        async function qiGua() {
             incrementQiguaCount();
             const guaInfo = calculateGua();
             const lottery = generateLottery(guaInfo);
@@ -1478,9 +1478,9 @@
             renderDetail('detailShuangse', guaInfo, lottery, 'shuangse');
             renderDetail('detailDale', guaInfo, lottery, 'dale');
 
-            // 保存预测记录
-            savePrediction('ssq', lottery);
-            savePrediction('dlt', lottery);
+            // 保存预测记录（等待保存完成）
+            await savePrediction('ssq', lottery);
+            await savePrediction('dlt', lottery);
             
             // 刷新展示
             renderPredictions('ssq');
