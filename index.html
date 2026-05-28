@@ -730,7 +730,7 @@
             renderResult(type, g, l) {
                 if (type === 'ssq') {
                     this.$('ssq-red').innerHTML = this.balls(l.red, 'red');
-                    this.$('ssq-blue').innerHTML = this.balls(l.blue, 'blue');
+                    this.$('ssq-blue').innerHTML = this.balls([l.blue], 'blue');
                     this.$('ssq-info').innerHTML = `
                         <p><strong>本卦：</strong>${g.benGua.name}（第${g.benXu}卦）</p>
                         <p><strong>变卦：</strong>${g.bianGua.name}（第${g.bianXu}卦）</p>
@@ -940,7 +940,7 @@
                         id: `p_${Date.now()}`,
                         time: Date.now(),
                         red: type === 'ssq' ? l.red : l.front,
-                        blue: type === 'ssq' ? l.blue : l.back
+                        blue: type === 'ssq' ? [l.blue] : l.back
                     };
 
                     Store.addRecord(type, record);
