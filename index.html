@@ -832,11 +832,13 @@
                         const prize = r.match?.prize || r.matchResult?.prize;
                         const red = Array.isArray(r.red) ? r.red : Array.isArray(r.redBalls) ? r.redBalls : [];
                         const blue = Array.isArray(r.blue) ? r.blue : Array.isArray(r.blueBalls) ? r.blueBalls : [];
+                        const matched = r.match || r.matchResult;
+                        const matchDetail = matched && matched.prize ? `（${matched.mRed||0}+${matched.mBlue||0}）` : '';
                         return `<div class="record-item">
                             <span class="text-sm text-secondary">#${i+1}</span>
                             <div class="flex-1">${this.balls(red,'red',true,resRed)} + ${this.balls(blue,'blue',true,resBlue)}</div>
                             <span class="text-sm text-secondary">${t}</span>
-                            ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="text-secondary">-</span>'}
+                            ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}${matchDetail}</span>` : '<span class="text-secondary">-</span>'}
                         </div>`;
                     }).join('');
                     return `<div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-ink)">
