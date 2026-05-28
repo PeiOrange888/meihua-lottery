@@ -707,7 +707,11 @@
 
                 if (data.period !== period && data.records.length > 0) {
                     const result = await Api.getResult(type);
-                    const matched = data.records.map(r => ({
+                    const matched = data.records.filter(r => {
+                        const red = r.red || r.redBalls;
+                        const blue = r.blue || r.blueBalls;
+                        return red && blue;
+                    }).map(r => ({
                         ...r,
                         match: type === 'ssq' ? this.matchSSQ(r, result) : this.matchDLT(r, result)
                     }));
