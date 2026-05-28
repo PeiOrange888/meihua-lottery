@@ -659,8 +659,12 @@
 
             matchSSQ(rec, res) {
                 if (!res) return null;
-                const mRed = rec.red.filter(r => res.red.includes(r)).length;
-                const mBlue = rec.blue[0] === res.blue[0] ? 1 : 0;
+                const red = rec.red || rec.redBalls || [];
+                const blue = rec.blue || rec.blueBalls || [];
+                const resRed = res.red || res.redBalls || [];
+                const resBlue = res.blue || res.blueBalls || [];
+                const mRed = red.filter(r => resRed.includes(r)).length;
+                const mBlue = blue[0] === resBlue[0] ? 1 : 0;
                 let prize = null;
                 if (mRed === 6 && mBlue === 1) prize = { level:1, name:'一等奖' };
                 else if (mRed === 6) prize = { level:2, name:'二等奖' };
@@ -673,8 +677,12 @@
 
             matchDLT(rec, res) {
                 if (!res) return null;
-                const mRed = rec.red.filter(r => res.red.includes(r)).length;
-                const mBlue = rec.blue.filter(b => res.blue.includes(b)).length;
+                const red = rec.red || rec.redBalls || [];
+                const blue = rec.blue || rec.blueBalls || [];
+                const resRed = res.red || res.redBalls || [];
+                const resBlue = res.blue || res.blueBalls || [];
+                const mRed = red.filter(r => resRed.includes(r)).length;
+                const mBlue = blue.filter(b => resBlue.includes(b)).length;
                 let prize = null;
                 if (mRed === 5 && mBlue === 2) prize = { level:1, name:'一等奖' };
                 else if (mRed === 5 && mBlue === 1) prize = { level:2, name:'二等奖' };
