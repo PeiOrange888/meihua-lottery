@@ -658,11 +658,11 @@
             },
 
             matchSSQ(rec, res) {
-                if (!res) return null;
-                const red = rec.red || rec.redBalls || [];
-                const blue = rec.blue || rec.blueBalls || [];
-                const resRed = res.red || res.redBalls || [];
-                const resBlue = res.blue || res.blueBalls || [];
+                if (!res || !rec) return null;
+                const red = Array.isArray(rec.red) ? rec.red : Array.isArray(rec.redBalls) ? rec.redBalls : [];
+                const blue = Array.isArray(rec.blue) ? rec.blue : Array.isArray(rec.blueBalls) ? rec.blueBalls : [];
+                const resRed = Array.isArray(res.red) ? res.red : Array.isArray(res.redBalls) ? res.redBalls : [];
+                const resBlue = Array.isArray(res.blue) ? res.blue : Array.isArray(res.blueBalls) ? res.blueBalls : [];
                 const mRed = red.filter(r => resRed.includes(r)).length;
                 const mBlue = blue[0] === resBlue[0] ? 1 : 0;
                 let prize = null;
@@ -676,11 +676,11 @@
             },
 
             matchDLT(rec, res) {
-                if (!res) return null;
-                const red = rec.red || rec.redBalls || [];
-                const blue = rec.blue || rec.blueBalls || [];
-                const resRed = res.red || res.redBalls || [];
-                const resBlue = res.blue || res.blueBalls || [];
+                if (!res || !rec) return null;
+                const red = Array.isArray(rec.red) ? rec.red : Array.isArray(rec.redBalls) ? rec.redBalls : [];
+                const blue = Array.isArray(rec.blue) ? rec.blue : Array.isArray(rec.blueBalls) ? rec.blueBalls : [];
+                const resRed = Array.isArray(res.red) ? res.red : Array.isArray(res.redBalls) ? res.redBalls : [];
+                const resBlue = Array.isArray(res.blue) ? res.blue : Array.isArray(res.blueBalls) ? res.blueBalls : [];
                 const mRed = red.filter(r => resRed.includes(r)).length;
                 const mBlue = blue.filter(b => resBlue.includes(b)).length;
                 let prize = null;
