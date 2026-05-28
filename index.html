@@ -476,8 +476,8 @@
         <footer class="text-center text-sm text-secondary mt-8" style="padding:2rem 0;border-top:1px solid var(--border-ink)">
             <p>卦以载道，数以明理。彩票开奖乃随机之事，此工具仅供娱乐。</p>
             <div class="mt-4 flex-center gap-4 text-sm">
-                <span>访问 <span id="pv">0</span> 次</span>
-                <span>访客 <span id="uv">0</span> 人</span>
+                <span>访问 <span id="busuanzi_value_site_pv">0</span> 次</span>
+                <span>访客 <span id="busuanzi_value_site_uv">0</span> 人</span>
                 <span>起卦 <span id="qigua-count">0</span> 次</span>
             </div>
         </footer>
@@ -895,7 +895,7 @@
                     const script = document.createElement('script');
                     script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
                     script.async = true; document.head.appendChild(script);
-                } else { UI.$('pv').textContent = '--'; UI.$('uv').textContent = '--'; }
+                } else { document.getElementById('busuanzi_value_site_pv').textContent = '--'; document.getElementById('busuanzi_value_site_uv').textContent = '--'; }
 
                 await Store.load();
                 UI.setCount(Store.data.qiguaCount);
