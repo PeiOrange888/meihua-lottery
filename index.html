@@ -281,9 +281,14 @@
 
         <!-- 起卦按钮区 -->
         <section class="text-center mb-12">
-            <button id="qiguaBtn" class="btn-qigua rounded-lg" onclick="qiGua()">
-                点击起卦
-            </button>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button id="qiguaBtnSSQ" class="btn-qigua rounded-lg" onclick="qiGuaSSQ()">
+                    福彩双色球起卦
+                </button>
+                <button id="qiguaBtnDLT" class="btn-qigua rounded-lg" onclick="qiGuaDLT()">
+                    体彩大乐透起卦
+                </button>
+            </div>
             <p id="timeDisplay" class="mt-4 text-[var(--text-secondary)] text-sm"></p>
         </section>
 
@@ -1464,7 +1469,7 @@
         }
 
         // 修改主函数，保存预测记录
-        async function qiGua() {
+        async function qiGuaSSQ() {
             incrementQiguaCount();
             const guaInfo = calculateGua();
             const lottery = generateLottery(guaInfo);
@@ -1473,21 +1478,28 @@
             
             renderBalls('redBalls', lottery.redBalls, 'red');
             renderBalls('blueBalls', [lottery.blueBall], 'blue');
+            
+            renderGuaInfo('guaInfoShuangse', guaInfo);
+            renderDetail('detailShuangse', guaInfo, lottery, 'shuangse');
+
+            await savePrediction('ssq', lottery);
+            renderPredictions('ssq');
+        }
+
+        async function qiGuaDLT() {
+            incrementQiguaCount();
+            const guaInfo = calculateGua();
+            const lottery = generateLottery(guaInfo);
+
+            document.getElementById('resultSection').classList.remove('hidden');
+            
             renderBalls('frontBalls', lottery.frontBalls, 'red');
             renderBalls('backBalls', lottery.backBalls, 'blue');
             
-            renderGuaInfo('guaInfoShuangse', guaInfo);
             renderGuaInfo('guaInfoDale', guaInfo);
-            
-            renderDetail('detailShuangse', guaInfo, lottery, 'shuangse');
             renderDetail('detailDale', guaInfo, lottery, 'dale');
 
-            // 保存预测记录（等待保存完成）
-            await savePrediction('ssq', lottery);
             await savePrediction('dlt', lottery);
-            
-            // 刷新展示
-            renderPredictions('ssq');
             renderPredictions('dlt');
         }
 
