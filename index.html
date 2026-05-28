@@ -817,7 +817,13 @@
                 const el = this.$(`${type}-history`);
                 const history = Store.data[type].history;
                 if (!history || history.length === 0) { el.innerHTML = '<p class="text-center text-secondary">暂无记录</p>'; return; }
-                el.innerHTML = history.map(h => {
+                
+                // 只保留已开奖且有中奖的记录
+                const winningHistory = history.filter(h => h.result && h.records.some(r => r.match?.prize || r.matchResult?.prize));
+                
+                if (winningHistory.length === 0) { el.innerHTML = '<p class="text-center text-secondary">暂无中奖记录</p>'; return; }
+                
+                el.innerHTML = winningHistory.map(h => {
                     const resRed = Array.isArray(h.result?.red) ? h.result.red : Array.isArray(h.result?.redBalls) ? h.result.redBalls : [];
                     const resBlue = Array.isArray(h.result?.blue) ? h.result.blue : Array.isArray(h.result?.blueBalls) ? h.result.blueBalls : [];
                     const resultHtml = h.result ? `<p class="text-sm mb-4 text-secondary">开奖：${resRed.join(',')} + ${resBlue.join(',')} (${h.result.date})</p>` : '';
