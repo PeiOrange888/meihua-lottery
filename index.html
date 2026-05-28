@@ -424,7 +424,6 @@
                     <h3 class="section-title mb-0">福彩预测记录</h3>
                     <div class="flex-center gap-4">
                         <span id="ssq-period" class="text-sm text-secondary">期号：--</span>
-                        <button class="text-sm" style="background:none;border:1px solid var(--border-ink);padding:0.25rem 0.5rem;cursor:pointer;font-family:inherit" onclick="App.refreshData('ssq')">刷新</button>
                     </div>
                 </div>
                 <div id="ssq-result" class="mb-4 text-sm text-secondary"></div>
@@ -441,7 +440,6 @@
                     <h3 class="section-title mb-0">体彩预测记录</h3>
                     <div class="flex-center gap-4">
                         <span id="dlt-period" class="text-sm text-secondary">期号：--</span>
-                        <button class="text-sm" style="background:none;border:1px solid var(--border-ink);padding:0.25rem 0.5rem;cursor:pointer;font-family:inherit" onclick="App.refreshData('dlt')">刷新</button>
                     </div>
                 </div>
                 <div id="dlt-result" class="mb-4 text-sm text-secondary"></div>
@@ -903,14 +901,14 @@
                 UI.setPeriod('ssq', Store.data.ssq.period||'--');
                 UI.setPeriod('dlt', Store.data.dlt.period||'--');
                 UI.renderRecords('ssq'); UI.renderRecords('dlt');
-                await this.refreshData('ssq'); await this.refreshData('dlt');
-                setInterval(() => { this.refreshData('ssq'); this.refreshData('dlt'); }, 30*60*1000);
+                await this._updateLottery('ssq'); await this._updateLottery('dlt');
+                setInterval(() => { this._updateLottery('ssq'); this._updateLottery('dlt'); }, 30*60*1000);
             },
 
-            async refreshData(type) {
+            async _updateLottery(type) {
                 const result = await Api.getResult(type);
                 const period = await Api.getPeriod(type);
-                UI.setPeriod(type, period);
+                if (period) UI.setPeriod(type, period);
                 if (result) {
                     Store.data[type].result = result;
                     Store.scheduleSave();
