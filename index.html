@@ -352,6 +352,7 @@
         <header class="header">
             <h1>梅花易数</h1>
             <p class="subtitle">以易道观天机，以数理测运势</p>
+            <p id="user-nickname" class="text-sm" style="color:var(--accent-cinnabar);margin-top:0.5rem"></p>
         </header>
 
         <!-- 气运测试 -->
@@ -547,6 +548,59 @@
             { min:20, name:'小凶', color:'xiaoxiong', desc:'今日气运欠佳，宜静不宜动', advice:'建议减少投注金额或暂停' },
             { min:0, name:'大凶', color:'daxiong', desc:'今日气运低迷，诸事不宜', advice:'建议今日不购彩' }
         ];
+
+        // ============================================
+        // 玄学昵称库
+        // ============================================
+        const NICK_PREFIX = [
+            '天机', '乾坤', '太极', '八卦', '紫微', '青龙', '白虎', '朱雀', '玄武',
+            '无极', '太乙', '河图', '洛书', '阴阳', '风水', '命理', '星象', '易理',
+            '玄真', '道玄', '灵虚', '清虚', '元始', '通天', '凌霄', '瑶池', '蓬莱',
+            '昆仑', '华山', '峨眉', '武当', '龙虎', '青城', '终南', '崆峒', '少林',
+            '天机', '太清', '上清', '玉清', '勾陈', '腾蛇', '天后', '太阴', '六合',
+            '天乙', '太常', '白虎', '玄武', '青龙', '朱雀', '勾陈', '腾蛇', '天罡',
+            '地煞', '紫气', '东来', '西极', '南明', '北溟', '中岳', '天枢', '天璇',
+            '天玑', '天权', '玉衡', '开阳', '摇光', '破军', '七杀', '贪狼', '巨门',
+            '禄存', '文曲', '廉贞', '武曲', '天机', '太阳', '太阴', '紫微', '天府'
+        ];
+
+        const NICK_SUFFIX = [
+            '老人', '居士', '真人', '先生', '仙子', '隐士', '子', '使者', '客',
+            '翁', '叟', '公', '仙', '君', '师', '者', '人', '童', '女',
+            '道人', '道士', '方士', '术士', '谋士', '隐者', '行者', '散人', '闲人',
+            '书生', '秀才', '举人', '进士', '状元', '榜眼', '探花', '翰林', '御史',
+            '将军', '都督', '元帅', '军师', '丞相', '尚书', '侍郎', '员外', '庄主',
+            '帮主', '教主', '掌门', '长老', '护法', '使者', '剑仙', '琴师', '棋圣',
+            '画圣', '医仙', '药王', '丹师', '阵师', '符师', '卜者', '相师', '堪舆',
+            '寻龙', '点穴', '观星', '望气', '听风', '辨水', '识龙', '定脉', '破煞'
+        ];
+
+        // ============================================
+        // 用户身份
+        // ============================================
+        const User = {
+            identity: null,
+            get() {
+                if (this.identity) return this.identity;
+                try {
+                    const cached = localStorage.getItem('meihua_user');
+                    if (cached) {
+                        this.identity = JSON.parse(cached);
+                        return this.identity;
+                    }
+                } catch(e) {}
+                
+                const nickname = NICK_PREFIX[Math.floor(Math.random() * NICK_PREFIX.length)] + 
+                                NICK_SUFFIX[Math.floor(Math.random() * NICK_SUFFIX.length)];
+                this.identity = {
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+                    nickname: nickname,
+                    created: Date.now()
+                };
+                localStorage.setItem('meihua_user', JSON.stringify(this.identity));
+                return this.identity;
+            }
+        };
 
         // ============================================
         // 数据存储
@@ -798,12 +852,16 @@
                     el.classList.remove('record-scroll'); return;
                 }
                 el.classList.toggle('record-scroll', records.length >= 3);
+                const user = User.get();
                 const html = records.map((r, i) => {
                     const t = new Date(r.time||r.timestamp).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
                     const red = Array.isArray(r.red) ? r.red : Array.isArray(r.redBalls) ? r.redBalls : [];
                     const blue = Array.isArray(r.blue) ? r.blue : Array.isArray(r.blueBalls) ? r.blueBalls : [];
+                    const nick = r.user?.nickname || '匿名';
+                    const isSelf = r.user?.id === user.id;
+                    const nameStyle = isSelf ? 'color:var(--accent-cinnabar);font-weight:600' : 'color:var(--text-secondary)';
                     return `<div class="record-item">
-                        <span class="text-sm text-secondary">#${i+1}</span>
+                        <span class="text-sm" style="${nameStyle}">${nick}</span>
                         <div class="flex-1">${this.balls(red,'red',true)} + ${this.balls(blue,'blue',true)}</div>
                         <span class="text-sm text-secondary">${t}</span>
                         <span class="prize-badge prize-none">待开奖</span>
@@ -834,8 +892,10 @@
                         const blue = Array.isArray(r.blue) ? r.blue : Array.isArray(r.blueBalls) ? r.blueBalls : [];
                         const matched = r.match || r.matchResult;
                         const matchDetail = matched && matched.prize ? `（${matched.mRed||0}+${matched.mBlue||0}）` : '';
+                        const nick = r.user?.nickname || '匿名';
+                        const nameStyle = r.user?.id === user.id ? 'color:var(--accent-cinnabar);font-weight:600' : 'color:var(--text-secondary)';
                         return `<div class="record-item">
-                            <span class="text-sm text-secondary">#${i+1}</span>
+                            <span class="text-sm" style="${nameStyle}">${nick}</span>
                             <div class="flex-1">${this.balls(red,'red',true,resRed)} + ${this.balls(blue,'blue',true,resBlue)}</div>
                             <span class="text-sm text-secondary">${t}</span>
                             ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}${matchDetail}</span>` : '<span class="text-secondary">-</span>'}
@@ -905,6 +965,8 @@
 
                 await Store.load();
                 UI.setCount(Store.data.qiguaCount);
+                const user = User.get();
+                document.getElementById('user-nickname').textContent = `当前身份：${user.nickname}`;
                 await Core.checkPeriod('ssq'); await Core.checkPeriod('dlt');
                 UI.setPeriod('ssq', Store.data.ssq.period||'--');
                 UI.setPeriod('dlt', Store.data.dlt.period||'--');
@@ -934,7 +996,8 @@
                     UI.setTime(g);
                     UI.$('result-section').classList.remove('hidden');
                     UI.renderResult(type, g, l);
-                    const record = { id: `p_${Date.now()}`, time: Date.now(), red: type==='ssq' ? l.red : l.front, blue: type==='ssq' ? [l.blue] : l.back };
+                    const user = User.get();
+                    const record = { id: `p_${Date.now()}`, time: Date.now(), user: user, red: type==='ssq' ? l.red : l.front, blue: type==='ssq' ? [l.blue] : l.back };
                     Store.addRecord(type, record);
                     UI.renderRecords(type);
                 } finally { UI.setLoading(btnId, false); }
