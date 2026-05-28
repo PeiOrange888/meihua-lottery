@@ -763,10 +763,12 @@
                 el.classList.toggle('record-scroll', records.length >= 3);
 
                 const html = records.map((r, i) => {
-                    const t = new Date(r.time).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                    const t = new Date(r.time || r.timestamp).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                    const red = r.red || r.redBalls || [];
+                    const blue = r.blue || r.blueBalls || [];
                     return `<div class="record-item">
                         <span class="text-xs" style="color:var(--text-secondary)">#${i+1}</span>
-                        <div class="flex-1">${this.balls(r.red, 'red', true)} + ${this.balls(r.blue, 'blue', true)}</div>
+                        <div class="flex-1">${this.balls(red, 'red', true)} + ${this.balls(blue, 'blue', true)}</div>
                         <span class="text-xs" style="color:var(--text-secondary)">${t}</span>
                         <span class="prize-badge prize-none">待开奖</span>
                     </div>`;
@@ -786,15 +788,17 @@
                 }
 
                 el.innerHTML = history.map(h => {
-                    const resultHtml = h.result ? `<p class="text-sm mb-2" style="color:var(--text-secondary)">开奖：${h.result.red.join(',')} + ${h.result.blue.join(',')} (${h.result.date})</p>` : '';
+                    const resRed = h.result?.red || h.result?.redBalls || [];
+                    const resBlue = h.result?.blue || h.result?.blueBalls || [];
+                    const resultHtml = h.result ? `<p class="text-sm mb-2" style="color:var(--text-secondary)">开奖：${resRed.join(',')} + ${resBlue.join(',')} (${h.result.date})</p>` : '';
                     const recordsHtml = h.records.map((r, i) => {
-                        const t = new Date(r.time).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
-                        const prize = r.match?.prize;
-                        const matchedRed = h.result?.red || [];
-                        const matchedBlue = h.result?.blue || [];
+                        const t = new Date(r.time || r.timestamp).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                        const prize = r.match?.prize || r.matchResult?.prize;
+                        const red = r.red || r.redBalls || [];
+                        const blue = r.blue || r.blueBalls || [];
                         return `<div class="record-item">
                             <span class="text-xs" style="color:var(--text-secondary)">#${i+1}</span>
-                            <div class="flex-1">${this.balls(r.red, 'red', true, matchedRed)} + ${this.balls(r.blue, 'blue', true, matchedBlue)}</div>
+                            <div class="flex-1">${this.balls(red, 'red', true, resRed)} + ${this.balls(blue, 'blue', true, resBlue)}</div>
                             <span class="text-xs" style="color:var(--text-secondary)">${t}</span>
                             ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span style="color:var(--text-secondary)">-</span>'}
                         </div>`;
@@ -814,7 +818,9 @@
                 const data = Store.data[type];
                 const el = this.$(`${type}-result`);
                 if (data.result) {
-                    el.innerHTML = `<strong>开奖：</strong>${this.balls(data.result.red, 'red', true)} + ${this.balls(data.result.blue, 'blue', true)} <span style="color:var(--text-secondary)">(${data.result.date})</span>`;
+                    const red = data.result.red || data.result.redBalls || [];
+                    const blue = data.result.blue || data.result.blueBalls || [];
+                    el.innerHTML = `<strong>开奖：</strong>${this.balls(red, 'red', true)} + ${this.balls(blue, 'blue', true)} <span style="color:var(--text-secondary)">(${data.result.date})</span>`;
                 } else {
                     el.innerHTML = '开奖结果：待更新';
                 }
