@@ -16,78 +16,72 @@
             --text-secondary: #c9b896;
         }
         
+        * { box-sizing: border-box; }
+        
         body {
             font-family: 'Noto Serif SC', serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             min-height: 100vh;
+            margin: 0;
+            color: var(--text-primary);
         }
         
-        .chinese-border {
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .card {
+            background: rgba(45, 21, 21, 0.9);
             border: 2px solid var(--accent-gold);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
         }
         
-        .ball {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.25rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        .title {
+            color: var(--accent-gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
         
-        .ball-red {
-            background: linear-gradient(145deg, #ff4444 0%, #cc0000 50%, #990000 100%);
-            color: white;
-            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), 
-                        inset 3px 3px 6px rgba(255,255,255,0.2),
-                        0 4px 8px rgba(0,0,0,0.3);
+        .section-title {
+            color: var(--accent-gold);
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
         
-        .ball-blue {
-            background: linear-gradient(145deg, #4a90d9 0%, #1e5aa8 50%, #0d3a7a 100%);
-            color: white;
-            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), 
-                        inset 3px 3px 6px rgba(255,255,255,0.2),
-                        0 4px 8px rgba(0,0,0,0.3);
-        }
-        
-        .btn-qigua {
+        .btn {
             background: linear-gradient(145deg, var(--accent-red) 0%, #6b0000 100%);
             color: var(--accent-gold);
             border: 2px solid var(--accent-gold);
-            padding: 1rem 3rem;
-            font-size: 1.5rem;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
             font-weight: bold;
             cursor: pointer;
+            border-radius: 0.5rem;
             transition: all 0.3s ease;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-family: inherit;
             position: relative;
-            min-width: 200px;
+            min-width: 180px;
         }
         
-        .btn-qigua:hover:not(:disabled) {
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
         }
         
-        .btn-qigua:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
-        .btn-qigua:disabled {
-            opacity: 0.7;
+        .btn:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
         }
         
-        .btn-qigua.loading::after {
+        .btn.loading::after {
             content: '';
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border: 2px solid transparent;
             border-top-color: var(--accent-gold);
             border-radius: 50%;
@@ -99,116 +93,94 @@
             to { transform: rotate(360deg); }
         }
         
-        .gua-card {
-            background: rgba(45, 21, 21, 0.9);
-            border: 1px solid var(--accent-gold);
-            padding: 1.5rem;
+        .ball {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            margin: 2px;
         }
         
-        .section-title {
-            color: var(--accent-gold);
-            border-bottom: 2px solid var(--accent-gold);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
+        .ball-red {
+            background: linear-gradient(145deg, #ff4444 0%, #cc0000 50%, #990000 100%);
+            color: white;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2), 0 3px 6px rgba(0,0,0,0.3);
         }
         
-        .detail-section {
-            background: rgba(26, 10, 10, 0.8);
-            border-left: 3px solid var(--accent-gold);
-            padding: 1rem;
-            margin-top: 1rem;
+        .ball-blue {
+            background: linear-gradient(145deg, #4a90d9 0%, #1e5aa8 50%, #0d3a7a 100%);
+            color: white;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2), 0 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        .ball-small {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
+            margin: 1px;
+        }
+        
+        .matched {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
         }
         
         .qiyun-card {
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 0.5rem;
             margin-top: 0.5rem;
         }
         
-        .qiyun-daji {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
-            border: 1px solid #ffd700;
-            color: #ffd700;
-        }
+        .qiyun-daji { background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1)); border: 1px solid #ffd700; color: #ffd700; }
+        .qiyun-ji { background: linear-gradient(135deg, rgba(0, 255, 0, 0.2), rgba(0, 255, 0, 0.1)); border: 1px solid #00ff00; color: #00ff00; }
+        .qiyun-ping { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); border: 1px solid #c0c0c0; color: #c0c0c0; }
+        .qiyun-xiaoxiong { background: linear-gradient(135deg, rgba(255, 165, 0, 0.2), rgba(255, 165, 0, 0.1)); border: 1px solid #ffa500; color: #ffa500; }
+        .qiyun-daxiong { background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 0, 0.1)); border: 1px solid #ff0000; color: #ff0000; }
         
-        .qiyun-ji {
-            background: linear-gradient(135deg, rgba(0, 255, 0, 0.2) 0%, rgba(0, 255, 0, 0.1) 100%);
-            border: 1px solid #00ff00;
-            color: #00ff00;
-        }
-        
-        .qiyun-ping {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-            border: 1px solid #c0c0c0;
-            color: #c0c0c0;
-        }
-        
-        .qiyun-xiaoxiong {
-            background: linear-gradient(135deg, rgba(255, 165, 0, 0.2) 0%, rgba(255, 165, 0, 0.1) 100%);
-            border: 1px solid #ffa500;
-            color: #ffa500;
-        }
-        
-        .qiyun-daxiong {
-            background: linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(255, 0, 0, 0.1) 100%);
-            border: 1px solid #ff0000;
-            color: #ff0000;
-        }
-        
-        .qiyun-score {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        
-        .qiyun-advice {
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-        }
-
-        .prediction-container {
-            max-height: 300px;
+        .record-container {
+            max-height: 280px;
             overflow: hidden;
-            position: relative;
         }
-
-        .prediction-scroll {
-            animation: scrollUp 45s linear infinite;
+        
+        .record-scroll {
+            animation: scrollUp 40s linear infinite;
             will-change: transform;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
-
+        
+        .record-container:hover .record-scroll {
+            animation-play-state: paused;
+        }
+        
         @keyframes scrollUp {
             0% { transform: translateY(0); }
             100% { transform: translateY(-50%); }
         }
-
-        .prediction-container:hover .prediction-scroll {
-            animation-play-state: paused;
-        }
-
-        .prediction-item {
+        
+        .record-item {
             padding: 0.5rem 0;
             border-bottom: 1px solid rgba(212, 175, 55, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 0.5rem;
         }
-
-        .prediction-item:last-child {
-            border-bottom: none;
-        }
-
+        
         .prize-badge {
-            padding: 0.25rem 0.5rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
         }
-
+        
         .prize-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
         .prize-2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #000; }
         .prize-3 { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
@@ -218,36 +190,12 @@
         .prize-7 { background: linear-gradient(135deg, #708090, #778899); color: #fff; }
         .prize-8 { background: linear-gradient(135deg, #778899, #a9a9a9); color: #fff; }
         .prize-none { background: transparent; color: #888; font-weight: normal; }
-
-        .matched-number {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
-        }
-
-        .period-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .refresh-btn {
-            background: rgba(212, 175, 55, 0.2);
-            border: 1px solid var(--accent-gold);
-            color: var(--accent-gold);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-
-        .refresh-btn:hover {
-            background: rgba(212, 175, 55, 0.3);
+        
+        .detail-box {
+            background: rgba(26, 10, 10, 0.8);
+            border-left: 3px solid var(--accent-gold);
+            padding: 1rem;
+            margin-top: 1rem;
         }
         
         .toast {
@@ -255,195 +203,159 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s;
+            pointer-events: none;
         }
         
-        .toast.show {
-            opacity: 1;
-        }
-        
-        .toast.error {
-            background: rgba(139, 0, 0, 0.9);
-            border: 1px solid #ff4444;
-        }
-        
-        .toast.success {
-            background: rgba(0, 100, 0, 0.9);
-            border: 1px solid #00ff00;
-        }
+        .toast.show { opacity: 1; }
+        .toast.error { background: rgba(139, 0, 0, 0.9); border: 1px solid #ff4444; }
         
         @media (max-width: 768px) {
-            .ball {
-                width: 32px;
-                height: 32px;
-                font-size: 0.9rem;
-            }
-            
-            .prediction-container {
-                max-height: 250px;
-            }
-            
-            .btn-qigua {
-                padding: 0.8rem 1.5rem;
-                font-size: 1.2rem;
-                min-width: 160px;
-            }
+            .ball { width: 36px; height: 36px; font-size: 0.9rem; }
+            .ball-small { width: 24px; height: 24px; font-size: 0.7rem; }
+            .btn { padding: 0.8rem 1.5rem; font-size: 1rem; min-width: 150px; }
+            .record-container { max-height: 220px; }
         }
     </style>
 </head>
-<body class="text-[var(--text-primary)]">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--accent-gold); text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                梅花易数 · 彩票预测
-            </h1>
-            <p class="text-xl text-[var(--text-secondary)]">仅供娱乐</p>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold title mb-2">梅花易数 · 彩票预测</h1>
+            <p class="text-lg" style="color: var(--text-secondary)">仅供娱乐</p>
         </header>
 
-        <section class="text-center mb-12">
-            <div class="inline-block gua-card chinese-border rounded-lg p-6">
-                <h3 class="section-title text-xl font-bold mb-4">今日气运</h3>
-                <div id="qiyunDisplay" class="mb-4">
-                    <div id="qiyunStatus" class="text-lg text-[var(--text-secondary)]">
-                        点击下方按钮测试今日气运
-                    </div>
+        <!-- 气运测试 -->
+        <section class="text-center mb-10">
+            <div class="card inline-block">
+                <h3 class="section-title text-xl font-bold">今日气运</h3>
+                <div id="qiyun-display">
+                    <p style="color: var(--text-secondary)">点击按钮测试今日气运</p>
                 </div>
-                <button id="qiyunBtn" class="btn-qigua rounded-lg" onclick="testQiYun()">
-                    测试气运
-                </button>
+                <button id="btn-qiyun" class="btn mt-4">测试气运</button>
             </div>
         </section>
 
-        <section class="text-center mb-12">
+        <!-- 起卦按钮 -->
+        <section class="text-center mb-10">
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button id="qiguaBtnSSQ" class="btn-qigua rounded-lg" onclick="qiGuaSSQ()">
-                    福彩双色球起卦
-                </button>
-                <button id="qiguaBtnDLT" class="btn-qigua rounded-lg" onclick="qiGuaDLT()">
-                    体彩大乐透起卦
-                </button>
+                <button id="btn-ssq" class="btn">福彩双色球起卦</button>
+                <button id="btn-dlt" class="btn">体彩大乐透起卦</button>
             </div>
-            <p id="timeDisplay" class="mt-4 text-[var(--text-secondary)] text-sm"></p>
+            <p id="time-display" class="mt-4 text-sm" style="color: var(--text-secondary)"></p>
         </section>
 
-        <section id="resultSection" class="hidden">
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="gua-card chinese-border rounded-lg">
-                    <h2 class="section-title text-2xl font-bold">福彩双色球</h2>
-                    
-                    <div class="mb-6">
-                        <p class="text-sm mb-2 text-[var(--text-secondary)]">红球区</p>
-                        <div id="redBalls" class="flex flex-wrap gap-2 justify-center"></div>
+        <!-- 结果展示 -->
+        <section id="result-section" class="mb-10 hidden">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 双色球 -->
+                <div class="card">
+                    <h2 class="section-title text-xl font-bold">福彩双色球</h2>
+                    <div class="mb-4">
+                        <p class="text-sm mb-2" style="color: var(--text-secondary)">红球区</p>
+                        <div id="ssq-red" class="flex flex-wrap gap-1 justify-center"></div>
                     </div>
-                    
-                    <div class="mb-6">
-                        <p class="text-sm mb-2 text-[var(--text-secondary)]">蓝球区</p>
-                        <div id="blueBalls" class="flex gap-2 justify-center"></div>
+                    <div class="mb-4">
+                        <p class="text-sm mb-2" style="color: var(--text-secondary)">蓝球区</p>
+                        <div id="ssq-blue" class="flex gap-1 justify-center"></div>
                     </div>
-                    
-                    <div class="detail-section">
-                        <div id="guaInfoShuangse" class="text-sm"></div>
-                        <button onclick="toggleDetail('shuangse')" class="text-[var(--accent-gold)] text-sm mt-2 hover:underline">
-                            [ 查看详细推导 ]
-                        </button>
-                        <div id="detailShuangse" class="hidden mt-3 text-xs text-[var(--text-secondary)]"></div>
+                    <div class="detail-box">
+                        <div id="ssq-info" class="text-sm"></div>
+                        <button class="text-sm mt-2 hover:underline" style="color: var(--accent-gold)" onclick="UI.toggleDetail('ssq')">[ 查看详细推导 ]</button>
+                        <div id="ssq-detail" class="hidden mt-3 text-xs" style="color: var(--text-secondary)"></div>
                     </div>
                 </div>
-
-                <div class="gua-card chinese-border rounded-lg">
-                    <h2 class="section-title text-2xl font-bold">体彩大乐透</h2>
-                    
-                    <div class="mb-6">
-                        <p class="text-sm mb-2 text-[var(--text-secondary)]">红球区</p>
-                        <div id="frontBalls" class="flex flex-wrap gap-2 justify-center"></div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <p class="text-sm mb-2 text-[var(--text-secondary)]">蓝球区</p>
-                        <div id="backBalls" class="flex gap-2 justify-center"></div>
-                    </div>
-                    
-                    <div class="detail-section">
-                        <div id="guaInfoDale" class="text-sm"></div>
-                        <button onclick="toggleDetail('dale')" class="text-[var(--accent-gold)] text-sm mt-2 hover:underline">
-                            [ 查看详细推导 ]
-                        </button>
-                        <div id="detailDale" class="hidden mt-3 text-xs text-[var(--text-secondary)]"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="predictionSection" class="mt-12">
-            <div class="gua-card chinese-border rounded-lg mb-8">
-                <div class="period-info">
-                    <h2 class="section-title text-2xl font-bold">福彩双色球 · 本期预测记录</h2>
-                    <div class="flex gap-2">
-                        <span id="ssqPeriod" class="text-sm text-[var(--text-secondary)]">期号：--</span>
-                        <button class="refresh-btn" onclick="refreshLotteryData('ssq')">🔄 刷新开奖</button>
-                    </div>
-                </div>
-                <div id="ssqResultDisplay" class="mb-4 text-sm text-[var(--text-secondary)]"></div>
-                <div id="ssqPredictions" class="prediction-container">
-                    <div class="prediction-scroll" id="ssqScroll">
-                        <div class="text-center text-[var(--text-secondary)] py-4">加载中...</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gua-card chinese-border rounded-lg mb-8">
-                <div class="period-info">
-                    <h2 class="section-title text-2xl font-bold">体彩大乐透 · 本期预测记录</h2>
-                    <div class="flex gap-2">
-                        <span id="dltPeriod" class="text-sm text-[var(--text-secondary)]">期号：--</span>
-                        <button class="refresh-btn" onclick="refreshLotteryData('dlt')">🔄 刷新开奖</button>
-                    </div>
-                </div>
-                <div id="dltResultDisplay" class="mb-4 text-sm text-[var(--text-secondary)]"></div>
-                <div id="dltPredictions" class="prediction-container">
-                    <div class="prediction-scroll" id="dltScroll">
-                        <div class="text-center text-[var(--text-secondary)] py-4">加载中...</div>
-                    </div>
-                </div>
-            </div>
-
-            <section id="historySection" class="mt-12">
-                <h2 class="text-2xl font-bold text-center text-[var(--accent-gold)] mb-8">🏆 历史中奖记录</h2>
                 
-                <div class="gua-card chinese-border rounded-lg mb-8">
-                    <h3 class="text-xl font-bold text-[var(--accent-gold)] mb-4">福彩双色球 · 历史记录</h3>
-                    <div id="ssqHistory" class="space-y-4">
-                        <div class="text-center text-[var(--text-secondary)] py-4">加载中...</div>
+                <!-- 大乐透 -->
+                <div class="card">
+                    <h2 class="section-title text-xl font-bold">体彩大乐透</h2>
+                    <div class="mb-4">
+                        <p class="text-sm mb-2" style="color: var(--text-secondary)">前区</p>
+                        <div id="dlt-front" class="flex flex-wrap gap-1 justify-center"></div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm mb-2" style="color: var(--text-secondary)">后区</p>
+                        <div id="dlt-back" class="flex gap-1 justify-center"></div>
+                    </div>
+                    <div class="detail-box">
+                        <div id="dlt-info" class="text-sm"></div>
+                        <button class="text-sm mt-2 hover:underline" style="color: var(--accent-gold)" onclick="UI.toggleDetail('dlt')">[ 查看详细推导 ]</button>
+                        <div id="dlt-detail" class="hidden mt-3 text-xs" style="color: var(--text-secondary)"></div>
                     </div>
                 </div>
-
-                <div class="gua-card chinese-border rounded-lg mb-8">
-                    <h3 class="text-xl font-bold text-[var(--accent-gold)] mb-4">体彩大乐透 · 历史记录</h3>
-                    <div id="dltHistory" class="space-y-4">
-                        <div class="text-center text-[var(--text-secondary)] py-4">加载中...</div>
-                    </div>
-                </div>
-            </section>
+            </div>
         </section>
 
-        <footer class="mt-12 text-center text-sm text-[var(--text-secondary)]">
-            <p>温馨提示：彩票开奖为独立随机事件，本工具基于梅花易数算法生成号码，仅供文化娱乐与思维练习，不构成任何投注建议。请理性购彩，量力而行。</p>
-            <div class="mt-4 flex justify-center gap-4 text-xs">
-                <span id="busuanzi_container_site_pv">
-                    访问 <span id="busuanzi_value_site_pv">0</span> 次
-                </span>
-                <span id="busuanzi_container_site_uv">
-                    访客 <span id="busuanzi_value_site_uv">0</span> 人
-                </span>
-                <span id="qigua_count">
-                    起卦 <span id="qigua_times">0</span> 次
-                </span>
+        <!-- 预测记录 -->
+        <section class="space-y-6">
+            <!-- 双色球记录 -->
+            <div class="card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title text-xl font-bold mb-0">福彩双色球 · 预测记录</h2>
+                    <div class="flex items-center gap-3">
+                        <span id="ssq-period" class="text-sm" style="color: var(--text-secondary)">期号：--</span>
+                        <button class="btn text-sm py-1 px-3" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="App.refreshData('ssq')">刷新</button>
+                    </div>
+                </div>
+                <div id="ssq-result" class="mb-3 text-sm" style="color: var(--text-secondary)"></div>
+                <div class="record-container">
+                    <div id="ssq-records" class="record-scroll">
+                        <p class="text-center py-4" style="color: var(--text-secondary)">加载中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 大乐透记录 -->
+            <div class="card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title text-xl font-bold mb-0">体彩大乐透 · 预测记录</h2>
+                    <div class="flex items-center gap-3">
+                        <span id="dlt-period" class="text-sm" style="color: var(--text-secondary)">期号：--</span>
+                        <button class="btn text-sm py-1 px-3" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="App.refreshData('dlt')">刷新</button>
+                    </div>
+                </div>
+                <div id="dlt-result" class="mb-3 text-sm" style="color: var(--text-secondary)"></div>
+                <div class="record-container">
+                    <div id="dlt-records" class="record-scroll">
+                        <p class="text-center py-4" style="color: var(--text-secondary)">加载中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史记录 -->
+            <div class="card">
+                <h2 class="text-xl font-bold text-center title mb-6">🏆 历史中奖记录</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-bold mb-3" style="color: var(--accent-gold)">福彩双色球</h3>
+                        <div id="ssq-history">
+                            <p class="text-center py-4" style="color: var(--text-secondary)">加载中...</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold mb-3" style="color: var(--accent-gold)">体彩大乐透</h3>
+                        <div id="dlt-history">
+                            <p class="text-center py-4" style="color: var(--text-secondary)">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 底部 -->
+        <footer class="mt-10 text-center text-sm" style="color: var(--text-secondary)">
+            <p>温馨提示：彩票开奖为独立随机事件，本工具基于梅花易数算法生成号码，仅供文化娱乐，不构成投注建议。请理性购彩。</p>
+            <div class="mt-3 flex justify-center gap-4 text-xs">
+                <span>访问 <span id="pv">0</span> 次</span>
+                <span>访客 <span id="uv">0</span> 人</span>
+                <span>起卦 <span id="qigua-count">0</span> 次</span>
             </div>
         </footer>
     </div>
@@ -451,202 +363,117 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        if (window.location.protocol !== 'file:') {
-            var script = document.createElement('script');
-            script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
-            script.async = true;
-            document.head.appendChild(script);
-        } else {
-            document.getElementById('busuanzi_value_site_pv').textContent = '--';
-            document.getElementById('busuanzi_value_site_uv').textContent = '--';
-        }
-    </script>
+    (function() {
+        'use strict';
 
-    <script>
         // ============================================
-        // 配置常量
+        // 配置
         // ============================================
         const CONFIG = {
             FIREBASE_URL: 'https://meihua-abb40-default-rtdb.firebaseio.com/lottery.json',
-            LOTTERY_API_URL: 'https://api.huiniao.top/interface/home/lotteryHistory',
-            SAVE_DEBOUNCE_MS: 1000,
-            MAX_HISTORY: 10,
-            RETRY_COUNT: 3,
-            RETRY_DELAY_MS: 1000
+            LOTTERY_API: 'https://api.huiniao.top/interface/home/lotteryHistory',
+            SAVE_DELAY: 1000,
+            MAX_HISTORY: 10
         };
 
         // ============================================
-        // 核心数据字典
+        // 常量定义
         // ============================================
-        const WUXING = {
-            1: '金', 2: '金', 3: '火', 4: '木', 5: '木', 6: '水', 7: '土', 8: '土'
-        };
-
-        const SHENG = { '木': '火', '火': '土', '土': '金', '金': '水', '水': '木' };
-        const KE = { '木': '土', '土': '水', '水': '火', '火': '金', '金': '木' };
+        const WUXING = { 1:'金', 2:'金', 3:'火', 4:'木', 5:'木', 6:'水', 7:'土', 8:'土' };
+        const SHENG = { '木':'火', '火':'土', '土':'金', '金':'水', '水':'木' };
+        const KE = { '木':'土', '土':'水', '水':'火', '火':'金', '金':'木' };
+        const TRI_TO_NUM = { '111':1, '011':2, '101':3, '001':4, '110':5, '010':6, '100':7, '000':8 };
 
         const GUA_64 = {
-            1:  { name: '乾为天', yao: [1,1,1,1,1,1] },
-            2:  { name: '坤为地', yao: [0,0,0,0,0,0] },
-            3:  { name: '水雷屯', yao: [0,1,0,1,0,0] },
-            4:  { name: '山水蒙', yao: [1,0,0,1,0,0] },
-            5:  { name: '水天需', yao: [1,1,1,0,1,0] },
-            6:  { name: '天水讼', yao: [0,1,0,1,1,1] },
-            7:  { name: '地水师', yao: [0,1,0,0,0,0] },
-            8:  { name: '水地比', yao: [0,0,0,0,1,0] },
-            9:  { name: '风天小畜', yao: [0,1,1,1,1,0] },
-            10: { name: '天泽履', yao: [0,1,1,1,0,1] },
-            11: { name: '地天泰', yao: [1,1,1,0,0,0] },
-            12: { name: '天地否', yao: [0,0,0,1,1,1] },
-            13: { name: '天火同人', yao: [0,1,0,1,1,1] },
-            14: { name: '火天大有', yao: [1,1,1,0,1,0] },
-            15: { name: '地山谦', yao: [0,0,1,0,0,0] },
-            16: { name: '雷地豫', yao: [0,0,0,0,1,0] },
-            17: { name: '泽雷随', yao: [0,1,0,0,1,0] },
-            18: { name: '山风蛊', yao: [0,1,0,0,0,1] },
-            19: { name: '地泽临', yao: [0,1,0,0,0,0] },
-            20: { name: '风地观', yao: [0,0,0,1,1,0] },
-            21: { name: '火雷噬嗑', yao: [0,1,0,0,1,0] },
-            22: { name: '山火贲', yao: [0,1,0,1,0,0] },
-            23: { name: '山地剥', yao: [0,0,0,1,0,0] },
-            24: { name: '地雷复', yao: [0,1,0,0,0,0] },
-            25: { name: '天雷无妄', yao: [0,1,0,1,1,1] },
-            26: { name: '山雷颐', yao: [0,1,0,1,0,0] },
-            27: { name: '山泽损', yao: [0,1,0,1,0,0] },
-            28: { name: '风雷益', yao: [0,1,0,1,1,0] },
-            29: { name: '泽天夬', yao: [1,1,1,1,0,1] },
-            30: { name: '天风姤', yao: [0,1,1,1,1,1] },
-            31: { name: '泽地萃', yao: [0,0,0,0,1,0] },
-            32: { name: '地风升', yao: [0,1,0,0,0,0] },
-            33: { name: '泽雷随', yao: [0,1,0,0,1,0] },
-            34: { name: '雷天大壮', yao: [1,1,1,1,0,0] },
-            35: { name: '火地晋', yao: [0,0,0,0,1,0] },
-            36: { name: '地火明夷', yao: [0,1,0,0,0,0] },
-            37: { name: '风火家人', yao: [0,1,0,1,1,0] },
-            38: { name: '火泽睽', yao: [0,1,1,0,1,0] },
-            39: { name: '山蹇', yao: [0,0,1,0,0,0] },
-            40: { name: '雷水解', yao: [0,1,0,0,1,0] },
-            41: { name: '山泽损', yao: [0,1,0,1,0,0] },
-            42: { name: '风雷益', yao: [0,1,0,1,1,0] },
-            43: { name: '泽天夬', yao: [1,1,1,1,0,1] },
-            44: { name: '天风姤', yao: [0,1,1,1,1,1] },
-            45: { name: '泽地萃', yao: [0,0,0,0,1,0] },
-            46: { name: '地风升', yao: [0,1,0,0,0,0] },
-            47: { name: '泽雷随', yao: [0,1,0,0,1,0] },
-            48: { name: '雷天大壮', yao: [1,1,1,1,0,0] },
-            49: { name: '火地晋', yao: [0,0,0,0,1,0] },
-            50: { name: '地火明夷', yao: [0,1,0,0,0,0] },
-            51: { name: '风火家人', yao: [0,1,0,1,1,0] },
-            52: { name: '火泽睽', yao: [0,1,1,0,1,0] },
-            53: { name: '山蹇', yao: [0,0,1,0,0,0] },
-            54: { name: '雷水解', yao: [0,1,0,0,1,0] },
-            55: { name: '雷泽归妹', yao: [0,1,1,0,0,0] },
-            56: { name: '风火家人', yao: [0,1,0,1,1,0] },
-            57: { name: '火山旅', yao: [0,1,1,0,1,0] },
-            58: { name: '巽为风', yao: [0,1,0,1,1,0] },
-            59: { name: '兑为泽', yao: [0,1,1,0,1,0] },
-            60: { name: '水泽节', yao: [0,1,0,0,1,0] },
-            61: { name: '风泽中孚', yao: [0,1,1,0,1,0] },
-            62: { name: '雷山小过', yao: [1,0,0,0,1,0] },
-            63: { name: '水火既济', yao: [0,1,0,1,0,0] },
-            64: { name: '火水未济', yao: [0,1,0,1,0,0] }
+            1:{name:'乾为天',yao:[1,1,1,1,1,1]}, 2:{name:'坤为地',yao:[0,0,0,0,0,0]},
+            3:{name:'水雷屯',yao:[0,1,0,1,0,0]}, 4:{name:'山水蒙',yao:[1,0,0,1,0,0]},
+            5:{name:'水天需',yao:[1,1,1,0,1,0]}, 6:{name:'天水讼',yao:[0,1,0,1,1,1]},
+            7:{name:'地水师',yao:[0,1,0,0,0,0]}, 8:{name:'水地比',yao:[0,0,0,0,1,0]},
+            9:{name:'风天小畜',yao:[0,1,1,1,1,0]}, 10:{name:'天泽履',yao:[0,1,1,1,0,1]},
+            11:{name:'地天泰',yao:[1,1,1,0,0,0]}, 12:{name:'天地否',yao:[0,0,0,1,1,1]},
+            13:{name:'天火同人',yao:[0,1,0,1,1,1]}, 14:{name:'火天大有',yao:[1,1,1,0,1,0]},
+            15:{name:'地山谦',yao:[0,0,1,0,0,0]}, 16:{name:'雷地豫',yao:[0,0,0,0,1,0]},
+            17:{name:'泽雷随',yao:[0,1,0,0,1,0]}, 18:{name:'山风蛊',yao:[0,1,0,0,0,1]},
+            19:{name:'地泽临',yao:[0,1,0,0,0,0]}, 20:{name:'风地观',yao:[0,0,0,1,1,0]},
+            21:{name:'火雷噬嗑',yao:[0,1,0,0,1,0]}, 22:{name:'山火贲',yao:[0,1,0,1,0,0]},
+            23:{name:'山地剥',yao:[0,0,0,1,0,0]}, 24:{name:'地雷复',yao:[0,1,0,0,0,0]},
+            25:{name:'天雷无妄',yao:[0,1,0,1,1,1]}, 26:{name:'山雷颐',yao:[0,1,0,1,0,0]},
+            27:{name:'山泽损',yao:[0,1,0,1,0,0]}, 28:{name:'风雷益',yao:[0,1,0,1,1,0]},
+            29:{name:'泽天夬',yao:[1,1,1,1,0,1]}, 30:{name:'天风姤',yao:[0,1,1,1,1,1]},
+            31:{name:'泽地萃',yao:[0,0,0,0,1,0]}, 32:{name:'地风升',yao:[0,1,0,0,0,0]},
+            33:{name:'泽雷随',yao:[0,1,0,0,1,0]}, 34:{name:'雷天大壮',yao:[1,1,1,1,0,0]},
+            35:{name:'火地晋',yao:[0,0,0,0,1,0]}, 36:{name:'地火明夷',yao:[0,1,0,0,0,0]},
+            37:{name:'风火家人',yao:[0,1,0,1,1,0]}, 38:{name:'火泽睽',yao:[0,1,1,0,1,0]},
+            39:{name:'山蹇',yao:[0,0,1,0,0,0]}, 40:{name:'雷水解',yao:[0,1,0,0,1,0]},
+            41:{name:'山泽损',yao:[0,1,0,1,0,0]}, 42:{name:'风雷益',yao:[0,1,0,1,1,0]},
+            43:{name:'泽天夬',yao:[1,1,1,1,0,1]}, 44:{name:'天风姤',yao:[0,1,1,1,1,1]},
+            45:{name:'泽地萃',yao:[0,0,0,0,1,0]}, 46:{name:'地风升',yao:[0,1,0,0,0,0]},
+            47:{name:'泽雷随',yao:[0,1,0,0,1,0]}, 48:{name:'雷天大壮',yao:[1,1,1,1,0,0]},
+            49:{name:'火地晋',yao:[0,0,0,0,1,0]}, 50:{name:'地火明夷',yao:[0,1,0,0,0,0]},
+            51:{name:'风火家人',yao:[0,1,0,1,1,0]}, 52:{name:'火泽睽',yao:[0,1,1,0,1,0]},
+            53:{name:'山蹇',yao:[0,0,1,0,0,0]}, 54:{name:'雷水解',yao:[0,1,0,0,1,0]},
+            55:{name:'雷泽归妹',yao:[0,1,1,0,0,0]}, 56:{name:'风火家人',yao:[0,1,0,1,1,0]},
+            57:{name:'火山旅',yao:[0,1,1,0,1,0]}, 58:{name:'巽为风',yao:[0,1,0,1,1,0]},
+            59:{name:'兑为泽',yao:[0,1,1,0,1,0]}, 60:{name:'水泽节',yao:[0,1,0,0,1,0]},
+            61:{name:'风泽中孚',yao:[0,1,1,0,1,0]}, 62:{name:'雷山小过',yao:[1,0,0,0,1,0]},
+            63:{name:'水火既济',yao:[0,1,0,1,0,0]}, 64:{name:'火水未济',yao:[0,1,0,1,0,0]}
         };
 
-        const TRI_TO_NUM = {
-            '111': 1, '011': 2, '101': 3, '001': 4,
-            '110': 5, '010': 6, '100': 7, '000': 8
-        };
-
-        const WU_XING = {
-            1: '金', 2: '金', 3: '火', 4: '木', 5: '木', 6: '水', 7: '土', 8: '土'
-        };
-
-        const QIYUN_CONFIG = {
-            daji: { min: 80, max: 100, name: '大吉', color: 'daji', 
-                    desc: '今日气运旺盛，诸事顺遂，宜积极进取',
-                    advice: '今日气运极佳，可适度增加投注，但仍需保持理性' },
-            ji: { min: 60, max: 79, name: '吉', color: 'ji',
-                  desc: '今日气运平顺，小有收获，宜稳健行事',
-                  advice: '气运不错，可以正常投注' },
-            ping: { min: 40, max: 59, name: '平', color: 'ping',
-                    desc: '今日气运一般，宜守成勿进，谨慎行事',
-                    advice: '气运平平，请谨慎投注，量力而行' },
-            xiaoxiong: { min: 20, max: 39, name: '小凶', color: 'xiaoxiong',
-                        desc: '今日气运欠佳，宜静不宜动，减少投资',
-                        advice: '气运不佳，建议减少投注金额或暂停' },
-            daxiong: { min: 0, max: 19, name: '大凶', color: 'daxiong',
-                      desc: '今日气运低迷，诸事不宜，建议休息',
-                      advice: '今日气运低迷，建议今日不购彩' }
-        };
+        const QIYUN_LEVELS = [
+            { min:80, name:'大吉', color:'daji', desc:'今日气运旺盛，诸事顺遂', advice:'可适度增加投注，但仍需保持理性' },
+            { min:60, name:'吉', color:'ji', desc:'今日气运平顺，小有收获', advice:'气运不错，可以正常投注' },
+            { min:40, name:'平', color:'ping', desc:'今日气运一般，宜谨慎', advice:'请谨慎投注，量力而行' },
+            { min:20, name:'小凶', color:'xiaoxiong', desc:'今日气运欠佳，宜静不宜动', advice:'建议减少投注金额或暂停' },
+            { min:0, name:'大凶', color:'daxiong', desc:'今日气运低迷，诸事不宜', advice:'建议今日不购彩' }
+        ];
 
         // ============================================
         // 数据存储层
         // ============================================
-        const DataStore = {
+        const Store = {
             data: {
-                ssq: { currentPeriod: '', records: [], result: null, history: [] },
-                dlt: { currentPeriod: '', records: [], result: null, history: [] },
-                qigua_count: 0
+                qiguaCount: 0,
+                ssq: { period: '', records: [], result: null, history: [] },
+                dlt: { period: '', records: [], result: null, history: [] }
             },
-            isDirty: false,
             saveTimer: null,
-            isLoading: false,
-            isLoaded: false,
+            dirty: false,
 
             async load() {
-                if (this.isLoading) return;
-                this.isLoading = true;
-                
                 try {
-                    const response = await fetch(CONFIG.FIREBASE_URL, {
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    const data = await response.json();
-                    
-                    if (data) {
-                        this.data.qigua_count = data.qigua_count || 0;
-                        this.data.ssq = { 
-                            currentPeriod: '', records: [], result: null, history: [],
-                            ...(data.ssq || {}) 
-                        };
-                        this.data.dlt = { 
-                            currentPeriod: '', records: [], result: null, history: [],
-                            ...(data.dlt || {}) 
-                        };
-                        this.isLoaded = true;
+                    const res = await fetch(CONFIG.FIREBASE_URL);
+                    const d = await res.json();
+                    if (d) {
+                        this.data.qiguaCount = d.qigua_count || 0;
+                        if (d.ssq) this.data.ssq = { period:'', records:[], result:null, history:[], ...d.ssq };
+                        if (d.dlt) this.data.dlt = { period:'', records:[], result:null, history:[], ...d.dlt };
                     }
-                } catch (error) {
-                    console.error('加载数据失败:', error);
-                    showToast('加载数据失败，请刷新页面重试', 'error');
-                } finally {
-                    this.isLoading = false;
+                } catch (e) {
+                    console.error('加载数据失败:', e);
                 }
             },
 
             scheduleSave() {
-                this.isDirty = true;
+                this.dirty = true;
                 if (this.saveTimer) clearTimeout(this.saveTimer);
-                
-                this.saveTimer = setTimeout(async () => {
-                    if (this.isDirty) {
-                        await this.saveNow();
-                    }
-                }, CONFIG.SAVE_DEBOUNCE_MS);
+                this.saveTimer = setTimeout(() => this.save(), CONFIG.SAVE_DELAY);
             },
 
-            async saveNow() {
+            async save() {
+                if (!this.dirty) return;
                 try {
-                    const response = await fetch(CONFIG.FIREBASE_URL, {
+                    const res = await fetch(CONFIG.FIREBASE_URL, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(this.data)
+                        body: JSON.stringify({
+                            qigua_count: this.data.qiguaCount,
+                            ssq: this.data.ssq,
+                            dlt: this.data.dlt
+                        })
                     });
-                    
-                    if (response.ok) {
-                        this.isDirty = false;
-                    }
-                } catch (error) {
-                    console.error('保存数据失败:', error);
+                    if (res.ok) this.dirty = false;
+                } catch (e) {
+                    console.error('保存数据失败:', e);
                 }
             },
 
@@ -655,742 +482,502 @@
                 this.scheduleSave();
             },
 
-            incrementQiguaCount() {
-                this.data.qigua_count = (this.data.qigua_count || 0) + 1;
+            incCount() {
+                this.data.qiguaCount++;
                 this.scheduleSave();
-                return this.data.qigua_count;
-            },
-
-            updatePeriod(type, period, records, result, history) {
-                this.data[type].currentPeriod = period;
-                this.data[type].records = records;
-                this.data[type].result = result;
-                this.data[type].history = history;
-                this.scheduleSave();
+                return this.data.qiguaCount;
             }
         };
 
         // ============================================
-        // 工具函数
+        // API 层
         // ============================================
-        function guiCang(n, max) {
-            const num = Math.round(n);
-            let r = num % max;
-            return r === 0 ? max : r;
-        }
-
-        function tongChiPeiShu(candidates, maxVal, dongYao) {
-            let result = [];
-            
-            for (let val of candidates) {
-                let v = val;
-                let attempts = 0;
-                const maxAttempts = maxVal;
-                
-                while (result.includes(v) && attempts < maxAttempts) {
-                    const step = Math.floor(Math.random() * 11) + 5;
-                    const direction = Math.random() > 0.5 ? 1 : -1;
-                    v += direction * step;
-                    
-                    while (v > maxVal) v -= maxVal;
-                    while (v < 1) v += maxVal;
-                    
-                    attempts++;
-                }
-                
-                result.push(v);
-            }
-            
-            for (let i = 1; i < result.length; i++) {
-                if (Math.abs(result[i] - result[i-1]) <= 2) {
-                    for (let j = 0; j < result.length; j++) {
-                        if (j !== i && Math.abs(result[j] - result[i-1]) > 3 && Math.abs(result[j] - result[i]) > 3) {
-                            [result[i], result[j]] = [result[j], result[i]];
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            return result.sort((a, b) => a - b);
-        }
-
-        function tiYongBianShu(ti, yong, relation, base, max) {
-            const coeff = {
-                '体生用': 0.7, '体克用': 1.3, '用生体': 1.1, '用克体': 0.9, '比和': 1.0
-            };
-            
-            let result;
-            const c = coeff[relation] || 1.0;
-            
-            if (relation === '比和') {
-                result = Math.round((ti * yong + base) * c);
-            } else if (relation === '体生用' || relation === '用生体') {
-                result = Math.round((ti + yong + base) * c);
-            } else {
-                result = Math.round((Math.abs(ti - yong) + base) * c);
-            }
-            
-            return guiCang(result, max);
-        }
-
-        function getWuXingCoeff(relation) {
-            const coeff = { '体生用': 0.7, '体克用': 1.3, '用生体': 1.1, '用克体': 0.9, '比和': 1.0 };
-            return coeff[relation] || 1.0;
-        }
-
-        function getTiYongRelation(ti_num, yong_num) {
-            const ti_wx = WUXING[ti_num];
-            const yong_wx = WUXING[yong_num];
-            
-            if (SHENG[ti_wx] === yong_wx) return { type: '体生用', desc: `体${ti_wx}生用${yong_wx}` };
-            if (KE[ti_wx] === yong_wx) return { type: '体克用', desc: `体${ti_wx}克用${yong_wx}` };
-            if (SHENG[yong_wx] === ti_wx) return { type: '用生体', desc: `体${ti_wx}被用${yong_wx}生` };
-            if (KE[yong_wx] === ti_wx) return { type: '用克体', desc: `体${ti_wx}被用${yong_wx}克` };
-            return { type: '比和', desc: `体${ti_wx}比用${yong_wx}` };
-        }
-
-        function triToNumber(yao) {
-            return TRI_TO_NUM[yao.join('')] || 1;
-        }
-
-        function liuYaoToSanYao(yao, start, end) {
-            return yao.slice(start, end);
-        }
-
-        // ============================================
-        // 起卦引擎
-        // ============================================
-        function calculateGua() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const day = now.getDate();
-            const hour = now.getHours();
-            const minute = now.getMinutes();
-            const second = now.getSeconds();
-
-            document.getElementById('timeDisplay').textContent = 
-                `${year}年${month}月${day}日 ${hour}时${minute}分${second}秒`;
-
-            const sum1 = year + month + day;
-            const sum2 = year + month + day + hour + minute + second;
-            
-            const shangGua = guiCang(sum1, 8);
-            const xiaGua = guiCang(sum2, 8);
-            const dongYao = guiCang(sum2, 6);
-            const diZhi = guiCang((hour * 3600 + minute * 60 + second), 12);
-
-            const benGuaXu = (shangGua - 1) * 8 + xiaGua;
-            const benGua = GUA_64[benGuaXu] || GUA_64[1];
-
-            let tiNum, yongNum;
-            if (dongYao <= 3) {
-                tiNum = shangGua;
-                yongNum = xiaGua;
-            } else {
-                tiNum = xiaGua;
-                yongNum = shangGua;
-            }
-
-            const tiYongRel = getTiYongRelation(tiNum, yongNum);
-
-            const benYao = [...benGua.yao];
-            benYao[dongYao - 1] = benYao[dongYao - 1] === 1 ? 0 : 1;
-            const bianShangYao = liuYaoToSanYao(benYao, 0, 3);
-            const bianXiaYao = liuYaoToSanYao(benYao, 3, 6);
-            const bianShangNum = triToNumber(bianShangYao);
-            const bianXiaNum = triToNumber(bianXiaYao);
-            const bianGuaXu = (bianShangNum - 1) * 8 + bianXiaNum;
-            const bianGua = GUA_64[bianGuaXu] || GUA_64[1];
-
-            const huShangYao = liuYaoToSanYao(benGua.yao, 2, 5);
-            const huXiaYao = liuYaoToSanYao(benGua.yao, 1, 4);
-            const huShangNum = triToNumber(huShangYao);
-            const huXiaNum = triToNumber(huXiaYao);
-            const huGuaXu = (huShangNum - 1) * 8 + huXiaNum;
-            const huGua = GUA_64[huGuaXu] || GUA_64[1];
-
-            return {
-                year, month, day, hour, minute, second,
-                shangGua, xiaGua, dongYao, diZhi,
-                benGuaXu, benGua,
-                tiNum, yongNum, tiYongRel,
-                bianGuaXu, bianGua,
-                huShangNum, huXiaNum, huGuaXu, huGua
-            };
-        }
-
-        function generateLottery(guaInfo) {
-            const { shangGua, xiaGua, dongYao, diZhi, benGuaXu, tiNum, yongNum, tiYongRel, bianGuaXu, huShangNum, huXiaNum } = guaInfo;
-
-            const redCandidates = [
-                guiCang(benGuaXu, 33),
-                guiCang(bianGuaXu, 33),
-                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 33),
-                guiCang(huShangNum * huXiaNum, 33),
-                guiCang(shangGua * 10 + xiaGua, 33),
-                guiCang(bianGuaXu * getWuXingCoeff(tiYongRel.type), 33)
-            ];
-            const redBalls = tongChiPeiShu(redCandidates, 33, dongYao).slice(0, 6);
-            const blueBall = tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao + diZhi, 16);
-
-            const frontCandidates = [
-                guiCang(benGuaXu, 35),
-                guiCang(bianGuaXu, 35),
-                tiYongBianShu(tiNum, yongNum, tiYongRel.type, dongYao, 35),
-                guiCang(huShangNum * huXiaNum + diZhi, 35),
-                guiCang(dongYao * diZhi * getWuXingCoeff(tiYongRel.type), 35)
-            ];
-            const frontBalls = tongChiPeiShu(frontCandidates, 35, dongYao).slice(0, 5);
-
-            let backA = guiCang(huShangNum + dongYao, 12);
-            let backB = guiCang(huXiaNum + diZhi, 12);
-            if (backA === backB) {
-                backB++;
-                if (backB > 12) backB = 1;
-            }
-            const backBalls = [backA, backB].sort((a, b) => a - b);
-
-            return { redBalls, blueBall, frontBalls, backBalls };
-        }
-
-        // ============================================
-        // UI渲染层
-        // ============================================
-        const UI = {
-            renderBalls(containerId, balls, type) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = balls.map(ball => 
-                    `<div class="ball ball-${type}">${ball}</div>`
-                ).join('');
-            },
-
-            renderGuaInfo(containerId, guaInfo) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = `
-                    <p><strong>本卦：</strong>${guaInfo.benGua.name}（第${guaInfo.benGuaXu}卦）</p>
-                    <p><strong>变卦：</strong>${guaInfo.bianGua.name}（第${guaInfo.bianGuaXu}卦）</p>
-                    <p><strong>互卦：</strong>${guaInfo.huGua.name}（第${guaInfo.huGuaXu}卦）</p>
-                    <p><strong>动爻：</strong>第${guaInfo.dongYao}爻</p>
-                    <p><strong>体用关系：</strong>${guaInfo.tiYongRel.desc}</p>
-                `;
-            },
-
-            renderDetail(containerId, guaInfo, lottery, type) {
-                const container = document.getElementById(containerId);
-                const isShuangse = type === 'shuangse';
-                
-                let html = '<div class="space-y-2">';
-                
-                if (isShuangse) {
-                    html += `<p><strong>【双色球推导】</strong></p>`;
-                    html += `<p>① 主卦卦序：${guaInfo.benGuaXu} → 归藏：${guiCang(guaInfo.benGuaXu, 33)}</p>`;
-                    html += `<p>② 变卦卦序：${guaInfo.bianGuaXu} → 归藏：${guiCang(guaInfo.bianGuaXu, 33)}</p>`;
-                    html += `<p>③ 体用${guaInfo.tiYongRel.type}：(${guaInfo.tiNum} ${this.getOperator(guaInfo.tiYongRel.type)} ${guaInfo.yongNum}) + ${guaInfo.dongYao} → ${tiYongBianShu(guaInfo.tiNum, guaInfo.yongNum, guaInfo.tiYongRel.type, guaInfo.dongYao, 33)}</p>`;
-                    html += `<p>④ 互卦上卦：${guaInfo.huShangNum} → 归藏：${guiCang(guaInfo.huShangNum, 33)}</p>`;
-                    html += `<p>⑤ 互卦下卦：${guaInfo.huXiaNum} → 归藏：${guiCang(guaInfo.huXiaNum, 33)}</p>`;
-                    html += `<p>⑥ 动爻+时辰：${guaInfo.dongYao} + ${guaInfo.diZhi} = ${guaInfo.dongYao + guaInfo.diZhi} → 归藏：${guiCang(guaInfo.dongYao + guaInfo.diZhi, 33)}</p>`;
-                    html += `<p class="mt-2"><strong>最终结果：</strong>红球 ${lottery.redBalls.join(', ')} + 蓝球 ${lottery.blueBall}</p>`;
-                } else {
-                    html += `<p><strong>【大乐透推导】</strong></p>`;
-                    html += `<p>① 主卦卦序：${guaInfo.benGuaXu} → 归藏：${guiCang(guaInfo.benGuaXu, 35)}</p>`;
-                    html += `<p>② 变卦卦序：${guaInfo.bianGuaXu} → 归藏：${guiCang(guaInfo.bianGuaXu, 35)}</p>`;
-                    html += `<p>③ 体用${guaInfo.tiYongRel.type}：(${guaInfo.tiNum} ${this.getOperator(guaInfo.tiYongRel.type)} ${guaInfo.yongNum}) + ${guaInfo.dongYao} → ${tiYongBianShu(guaInfo.tiNum, guaInfo.yongNum, guaInfo.tiYongRel.type, guaInfo.dongYao, 35)}</p>`;
-                    html += `<p>④ 动爻×时辰：${guaInfo.dongYao} × ${guaInfo.diZhi} = ${guaInfo.dongYao * guaInfo.diZhi} → 归藏：${guiCang(guaInfo.dongYao * guaInfo.diZhi, 35)}</p>`;
-                    html += `<p>⑤ 时辰+动爻：${guaInfo.diZhi} + ${guaInfo.dongYao} = ${guaInfo.diZhi + guaInfo.dongYao} → 归藏：${guiCang(guaInfo.diZhi + guaInfo.dongYao, 35)}</p>`;
-                    html += `<p class="mt-2"><strong>最终结果：</strong>红球区 ${lottery.frontBalls.join(', ')} + 蓝球区 ${lottery.backBalls.join(', ')}</p>`;
-                }
-                
-                html += '</div>';
-                container.innerHTML = html;
-            },
-
-            getOperator(relation) {
-                if (relation === '比和') return '×';
-                if (relation === '体生用' || relation === '用生体') return '+';
-                return '-';
-            },
-
-            renderMiniBalls(balls, type, winningBalls) {
-                return balls.map(ball => {
-                    const hasWinningBalls = winningBalls && Array.isArray(winningBalls) && winningBalls.length > 0;
-                    const isMatched = hasWinningBalls && winningBalls.includes(ball);
-                    const ballClass = isMatched ? `ball-${type} matched-number` : `ball-${type}`;
-                    return `<div class="ball ${ballClass}" style="width: 28px; height: 28px; font-size: 0.8rem;">${ball}</div>`;
-                }).join('');
-            },
-
-            renderPredictions(type) {
-                const container = document.getElementById(`${type}Scroll`);
-                const records = DataStore.data[type].records;
-
-                if (records.length === 0) {
-                    container.innerHTML = '<div class="text-center text-[var(--text-secondary)] py-4">暂无预测记录</div>';
-                    container.classList.remove('prediction-scroll');
-                    return;
-                }
-
-                if (records.length < 3) {
-                    container.classList.remove('prediction-scroll');
-                } else {
-                    container.classList.add('prediction-scroll');
-                }
-
-                let html = '';
-                records.forEach((record, index) => {
-                    const timeStr = new Date(record.timestamp).toLocaleString('zh-CN', {
-                        month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
-                    });
-                    
-                    html += `<div class="prediction-item">
-                        <div class="flex items-center gap-1 flex-1">
-                            <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
-                            ${this.renderMiniBalls(record.redBalls, 'red', null)}
-                            <span class="text-[var(--text-secondary)] mx-1">+</span>
-                            ${this.renderMiniBalls(record.blueBalls, 'blue', null)}
-                        </div>
-                        <div class="text-xs text-[var(--text-secondary)] mr-4">${timeStr}</div>
-                        <div><span class="prize-badge prize-none">待开奖</span></div>
-                    </div>`;
-                });
-
-                container.innerHTML = records.length >= 3 ? html + html : html;
-                this.renderHistory(type);
-            },
-
-            renderHistory(type) {
-                const container = document.getElementById(`${type}History`);
-                const history = DataStore.data[type].history || [];
-                
-                if (history.length === 0) {
-                    container.innerHTML = '<div class="text-center text-[var(--text-secondary)] py-4">暂无历史记录</div>';
-                    return;
-                }
-                
-                let html = '';
-                history.forEach(item => {
-                    html += `<div class="history-item border-b border-[var(--border-color)] pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-[var(--accent-gold)]">第 ${item.period} 期</span>
-                            <span class="text-sm text-[var(--text-secondary)]">${item.result ? '已开奖' : '未开奖'}</span>
-                        </div>`;
-                    
-                    if (item.result) {
-                        html += `<div class="text-sm text-[var(--text-secondary)] mb-2">
-                            开奖号码：${item.result.redBalls.join(', ')} + ${item.result.blueBalls.join(', ')} (${item.result.date})
-                        </div>`;
-                    }
-                    
-                    html += `<div class="space-y-1">`;
-                    item.records.forEach((record, index) => {
-                        const prize = record.matchResult?.prize;
-                        const timeStr = new Date(record.timestamp).toLocaleString('zh-CN', {
-                            month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
-                        });
-                        
-                        html += `<div class="flex items-center justify-between text-sm">
-                            <div class="flex items-center gap-1 flex-1">
-                                <span class="text-xs text-[var(--text-secondary)] mr-2">#${index + 1}</span>
-                                ${this.renderMiniBalls(record.redBalls, 'red', item.result?.redBalls)}
-                                <span class="text-[var(--text-secondary)] mx-1">+</span>
-                                ${this.renderMiniBalls(record.blueBalls, 'blue', item.result?.blueBalls)}
-                            </div>
-                            <div class="text-xs text-[var(--text-secondary)] mr-4">${timeStr}</div>
-                            <div>
-                                ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span class="text-[var(--text-secondary)]">未开奖</span>'}
-                            </div>
-                        </div>`;
-                    });
-                    html += `</div></div>`;
-                });
-                
-                container.innerHTML = html;
-            },
-
-            renderLotteryResult(type, result) {
-                const container = document.getElementById(`${type}ResultDisplay`);
-                if (result) {
-                    container.innerHTML = `<strong>开奖号码：</strong>
-                        <span class="ball ball-red" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">${result.redBalls.join('</span><span class="ball ball-red" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">')}</span>
-                        <span class="text-[var(--text-secondary)] mx-1">+</span>
-                        <span class="ball ball-blue" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">${result.blueBalls.join('</span><span class="ball ball-blue" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; margin: 0 1px;">')}</span>
-                        <span class="text-[var(--text-secondary)] ml-2">(${result.date})</span>`;
-                } else {
-                    container.innerHTML = '开奖结果：待更新';
-                }
-            },
-
-            updateQiguaDisplay(count) {
-                document.getElementById('qigua_times').textContent = count;
-            },
-
-            setButtonLoading(btnId, loading) {
-                const btn = document.getElementById(btnId);
-                if (loading) {
-                    btn.disabled = true;
-                    btn.classList.add('loading');
-                } else {
-                    btn.disabled = false;
-                    btn.classList.remove('loading');
-                }
-            }
-        };
-
-        // ============================================
-        // 气运计算模块
-        // ============================================
-        function getQiYunCacheKey() {
-            const now = new Date();
-            return `qiyun_${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}`;
-        }
-        
-        function getQiYunLevel(score) {
-            if (score >= 80) return QIYUN_CONFIG.daji;
-            if (score >= 60) return QIYUN_CONFIG.ji;
-            if (score >= 40) return QIYUN_CONFIG.ping;
-            if (score >= 20) return QIYUN_CONFIG.xiaoxiong;
-            return QIYUN_CONFIG.daxiong;
-        }
-        
-        function isTiGuaDeShi(tiNum) {
-            const month = new Date().getMonth() + 1;
-            const tiWuXing = WU_XING[tiNum];
-            
-            const season = month >= 3 && month <= 5 ? 'spring' :
-                          month >= 6 && month <= 8 ? 'summer' :
-                          month >= 9 && month <= 11 ? 'autumn' : 'winter';
-            
-            const wuxingSeason = { spring: '木', summer: '火', autumn: '金', winter: '水' };
-            return tiWuXing === wuxingSeason[season];
-        }
-        
-        function calculateQiYunScore(guaInfo) {
-            let score = 50;
-            
-            const relation = guaInfo.tiYongRel.type;
-            if (relation === '用生体') score += 30;
-            else if (relation === '体克用') score += 15;
-            else if (relation === '比和') score += 10;
-            else if (relation === '体生用') score -= 15;
-            else if (relation === '用克体') score -= 30;
-            
-            if (isTiGuaDeShi(guaInfo.tiNum)) score += 10;
-            
-            return Math.max(0, Math.min(100, score));
-        }
-        
-        function testQiYun() {
-            const cacheKey = getQiYunCacheKey();
-            const cached = localStorage.getItem(cacheKey);
-            
-            if (cached) {
-                displayQiYun(JSON.parse(cached));
-                return;
-            }
-            
-            const guaInfo = calculateGua();
-            const score = calculateQiYunScore(guaInfo);
-            const level = getQiYunLevel(score);
-            
-            const qiyun = {
-                score: score,
-                level: level,
-                guaInfo: { benGua: guaInfo.benGua.name, tiYong: guaInfo.tiYongRel.desc }
-            };
-            
-            localStorage.setItem(cacheKey, JSON.stringify(qiyun));
-            displayQiYun(qiyun);
-        }
-        
-        function displayQiYun(qiyun) {
-            const container = document.getElementById('qiyunDisplay');
-            const level = qiyun.level;
-            
-            container.innerHTML = `
-                <div class="qiyun-card qiyun-${level.color}">
-                    <div class="text-2xl font-bold mb-2">${level.name}</div>
-                    <div class="qiyun-score">${qiyun.score}分</div>
-                    <p class="mt-2">${level.desc}</p>
-                    <div class="qiyun-advice">${level.advice}</div>
-                </div>
-            `;
-        }
-
-        // ============================================
-        // 中奖匹配
-        // ============================================
-        function matchSSQ(prediction, result) {
-            if (!result) return null;
-            
-            const predReds = prediction.redBalls;
-            const predBlue = prediction.blueBall;
-            const resultReds = result.redBalls;
-            const resultBlue = result.blueBalls[0];
-
-            let matchedRed = predReds.filter(r => resultReds.includes(r)).length;
-            let matchedBlue = predBlue === resultBlue ? 1 : 0;
-
-            let prize = null;
-            if (matchedRed === 6 && matchedBlue === 1) prize = { level: 1, name: '一等奖', desc: '6+1' };
-            else if (matchedRed === 6 && matchedBlue === 0) prize = { level: 2, name: '二等奖', desc: '6+0' };
-            else if (matchedRed === 5 && matchedBlue === 1) prize = { level: 3, name: '三等奖', desc: '5+1' };
-            else if (matchedRed === 5 && matchedBlue === 0) prize = { level: 4, name: '四等奖', desc: '5+0' };
-            else if (matchedRed === 4 && matchedBlue === 1) prize = { level: 4, name: '四等奖', desc: '4+1' };
-            else if (matchedRed === 4 && matchedBlue === 0) prize = { level: 5, name: '五等奖', desc: '4+0' };
-            else if (matchedRed === 3 && matchedBlue === 1) prize = { level: 5, name: '五等奖', desc: '3+1' };
-            else if (matchedRed === 2 && matchedBlue === 1) prize = { level: 6, name: '六等奖', desc: '2+1' };
-            else if (matchedRed === 1 && matchedBlue === 1) prize = { level: 6, name: '六等奖', desc: '1+1' };
-            else if (matchedRed === 0 && matchedBlue === 1) prize = { level: 6, name: '六等奖', desc: '0+1' };
-
-            return { matchedRed, matchedBlue, prize };
-        }
-
-        function matchDLT(prediction, result) {
-            if (!result) return null;
-            
-            const predReds = prediction.redBalls || prediction.frontBalls;
-            const predBlues = prediction.blueBalls || prediction.backBalls;
-            const resultReds = result.redBalls;
-            const resultBlues = result.blueBalls;
-
-            let matchedRed = predReds.filter(r => resultReds.includes(r)).length;
-            let matchedBlue = predBlues.filter(b => resultBlues.includes(b)).length;
-
-            let prize = null;
-            if (matchedRed === 5 && matchedBlue === 2) prize = { level: 1, name: '一等奖', desc: '5+2' };
-            else if (matchedRed === 5 && matchedBlue === 1) prize = { level: 2, name: '二等奖', desc: '5+1' };
-            else if (matchedRed === 5 && matchedBlue === 0) prize = { level: 3, name: '三等奖', desc: '5+0' };
-            else if (matchedRed === 4 && matchedBlue === 2) prize = { level: 3, name: '三等奖', desc: '4+2' };
-            else if (matchedRed === 4 && matchedBlue === 1) prize = { level: 4, name: '四等奖', desc: '4+1' };
-            else if (matchedRed === 3 && matchedBlue === 2) prize = { level: 4, name: '四等奖', desc: '3+2' };
-            else if (matchedRed === 4 && matchedBlue === 0) prize = { level: 5, name: '五等奖', desc: '4+0' };
-            else if (matchedRed === 3 && matchedBlue === 1) prize = { level: 5, name: '五等奖', desc: '3+1' };
-            else if (matchedRed === 2 && matchedBlue === 2) prize = { level: 6, name: '六等奖', desc: '2+2' };
-            else if (matchedRed === 3 && matchedBlue === 0) prize = { level: 6, name: '六等奖', desc: '3+0' };
-            else if (matchedRed === 1 && matchedBlue === 2) prize = { level: 7, name: '七等奖', desc: '1+2' };
-            else if (matchedRed === 2 && matchedBlue === 1) prize = { level: 7, name: '七等奖', desc: '2+1' };
-            else if (matchedRed === 0 && matchedBlue === 2) prize = { level: 8, name: '八等奖', desc: '0+2' };
-            else if (matchedRed === 1 && matchedBlue === 1) prize = { level: 8, name: '八等奖', desc: '1+1' };
-            else if (matchedRed === 2 && matchedBlue === 0) prize = { level: 8, name: '八等奖', desc: '2+0' };
-
-            return { matchedRed, matchedBlue, prize };
-        }
-
-        // ============================================
-        // API调用
-        // ============================================
-        const API = {
-            async getCurrentPeriod(type) {
+        const Api = {
+            async getPeriod(type) {
                 try {
-                    const response = await fetch(`${CONFIG.LOTTERY_API_URL}?type=${type === 'ssq' ? 'ssq' : 'dlt'}&page=1&limit=1`);
-                    const data = await response.json();
-                    if (data.code === 1 && data.data.last) {
-                        return data.data.last.code;
-                    }
-                } catch (error) {
-                    console.error('获取期号失败:', error);
+                    const res = await fetch(`${CONFIG.LOTTERY_API}?type=${type}&page=1&limit=1`);
+                    const d = await res.json();
+                    return d.code === 1 && d.data.last ? d.data.last.code : null;
+                } catch (e) {
+                    return type === 'ssq' ? '2026058' : '26056';
                 }
-                return type === 'ssq' ? '2026058' : '26056';
             },
 
-            async getLotteryResult(type) {
+            async getResult(type) {
                 try {
-                    const response = await fetch(`${CONFIG.LOTTERY_API_URL}?type=${type === 'ssq' ? 'ssq' : 'dlt'}&page=1&limit=1`);
-                    const data = await response.json();
-                    if (data.code === 1 && data.data.last) {
-                        const last = data.data.last;
+                    const res = await fetch(`${CONFIG.LOTTERY_API}?type=${type}&page=1&limit=1`);
+                    const d = await res.json();
+                    if (d.code === 1 && d.data.last) {
+                        const last = d.data.last;
                         return {
                             period: last.code,
                             date: last.day,
-                            redBalls: [last.one, last.two, last.three, last.four, last.five, last.six].map(Number),
-                            blueBalls: type === 'ssq' ? [Number(last.seven)] : [Number(last.six), Number(last.seven)]
+                            red: [last.one, last.two, last.three, last.four, last.five, last.six].map(Number),
+                            blue: type === 'ssq' ? [Number(last.seven)] : [Number(last.six), Number(last.seven)]
                         };
                     }
-                } catch (error) {
-                    console.error('获取开奖结果失败:', error);
-                }
+                } catch (e) {}
                 return null;
             }
         };
 
         // ============================================
-        // 周期管理
+        // 核心业务逻辑
         // ============================================
-        async function checkPeriod(type) {
-            const currentPeriod = await API.getCurrentPeriod(type);
-            
-            if (!DataStore.data[type].currentPeriod) {
-                DataStore.data[type].currentPeriod = currentPeriod;
-                await DataStore.saveNow();
-                return;
-            }
-            
-            if (DataStore.data[type].currentPeriod !== currentPeriod) {
-                const lastResult = await API.getLotteryResult(type);
-                
-                if (DataStore.data[type].records.length > 0) {
-                    const matchedRecords = DataStore.data[type].records.map(record => {
-                        if (lastResult) {
-                            const matchResult = type === 'ssq' ? matchSSQ(record, lastResult) : matchDLT(record, lastResult);
-                            return { ...record, matchResult };
+        const Core = {
+            guiCang(n, max) {
+                const r = Math.round(n) % max;
+                return r === 0 ? max : r;
+            },
+
+            getRelation(ti, yong) {
+                const tw = WUXING[ti], yw = WUXING[yong];
+                if (SHENG[tw] === yw) return { type: '体生用', desc: `体${tw}生用${yw}` };
+                if (KE[tw] === yw) return { type: '体克用', desc: `体${tw}克用${yw}` };
+                if (SHENG[yw] === tw) return { type: '用生体', desc: `体${tw}被用${yw}生` };
+                if (KE[yw] === tw) return { type: '用克体', desc: `体${tw}被用${yw}克` };
+                return { type: '比和', desc: `体${tw}比用${yw}` };
+            },
+
+            calcGua() {
+                const now = new Date();
+                const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+                const h = now.getHours(), min = now.getMinutes(), s = now.getSeconds();
+
+                const sum1 = y + m + d;
+                const sum2 = y + m + d + h + min + s;
+                const shang = this.guiCang(sum1, 8);
+                const xia = this.guiCang(sum2, 8);
+                const dong = this.guiCang(sum2, 6);
+                const dz = this.guiCang(h * 3600 + min * 60 + s, 12);
+
+                const benXu = (shang - 1) * 8 + xia;
+                const benGua = GUA_64[benXu] || GUA_64[1];
+
+                let ti, yong;
+                if (dong <= 3) { ti = shang; yong = xia; }
+                else { ti = xia; yong = shang; }
+
+                const rel = this.getRelation(ti, yong);
+
+                const yao = [...benGua.yao];
+                yao[dong - 1] = yao[dong - 1] === 1 ? 0 : 1;
+                const bShang = yao.slice(0, 3), bXia = yao.slice(3, 6);
+                const bShangNum = TRI_TO_NUM[bShang.join('')] || 1;
+                const bXiaNum = TRI_TO_NUM[bXia.join('')] || 1;
+                const bianXu = (bShangNum - 1) * 8 + bXiaNum;
+                const bianGua = GUA_64[bianXu] || GUA_64[1];
+
+                const hShang = TRI_TO_NUM[benGua.yao.slice(2, 5).join('')] || 1;
+                const hXia = TRI_TO_NUM[benGua.yao.slice(1, 4).join('')] || 1;
+                const huXu = (hShang - 1) * 8 + hXia;
+                const huGua = GUA_64[huXu] || GUA_64[1];
+
+                return { y, m, d, h, min, s, shang, xia, dong, dz, benXu, benGua, ti, yong, rel, bianXu, bianGua, hShang, hXia, huXu, huGua };
+            },
+
+            genLottery(g) {
+                const coeff = { '体生用':0.7, '体克用':1.3, '用生体':1.1, '用克体':0.9, '比和':1.0 };
+                const c = coeff[g.rel.type] || 1.0;
+
+                const calc = (base, max) => {
+                    let r;
+                    if (g.rel.type === '比和') r = Math.round((g.ti * g.yong + base) * c);
+                    else if (g.rel.type === '体生用' || g.rel.type === '用生体') r = Math.round((g.ti + g.yong + base) * c);
+                    else r = Math.round((Math.abs(g.ti - g.yong) + base) * c);
+                    return this.guiCang(r, max);
+                };
+
+                const adjust = (arr, max) => {
+                    const result = [];
+                    for (let v of arr) {
+                        let attempts = 0;
+                        while (result.includes(v) && attempts < max) {
+                            const step = Math.floor(Math.random() * 11) + 5;
+                            v += Math.random() > 0.5 ? step : -step;
+                            while (v > max) v -= max;
+                            while (v < 1) v += max;
+                            attempts++;
                         }
-                        return record;
-                    });
-                    
-                    const historyItem = {
-                        period: DataStore.data[type].currentPeriod,
-                        records: matchedRecords,
-                        result: lastResult,
-                        endTime: Date.now()
-                    };
-                    DataStore.data[type].history.unshift(historyItem);
-                    if (DataStore.data[type].history.length > CONFIG.MAX_HISTORY) {
-                        DataStore.data[type].history.pop();
+                        result.push(v);
                     }
+                    for (let i = 1; i < result.length; i++) {
+                        if (Math.abs(result[i] - result[i-1]) <= 2) {
+                            for (let j = 0; j < result.length; j++) {
+                                if (j !== i && Math.abs(result[j] - result[i-1]) > 3 && Math.abs(result[j] - result[i]) > 3) {
+                                    [result[i], result[j]] = [result[j], result[i]];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    return result.sort((a, b) => a - b);
+                };
+
+                const redCand = [
+                    this.guiCang(g.benXu, 33),
+                    this.guiCang(g.bianXu, 33),
+                    calc(g.dong, 33),
+                    this.guiCang(g.hShang * g.hXia, 33),
+                    this.guiCang(g.shang * 10 + g.xia, 33),
+                    this.guiCang(g.bianXu * c, 33)
+                ];
+                const red = adjust(redCand, 33).slice(0, 6);
+                const blue = calc(g.dong + g.dz, 16);
+
+                const frontCand = [
+                    this.guiCang(g.benXu, 35),
+                    this.guiCang(g.bianXu, 35),
+                    calc(g.dong, 35),
+                    this.guiCang(g.hShang * g.hXia + g.dz, 35),
+                    this.guiCang(g.dong * g.dz * c, 35)
+                ];
+                const front = adjust(frontCand, 35).slice(0, 5);
+
+                let backA = this.guiCang(g.hShang + g.dong, 12);
+                let backB = this.guiCang(g.hXia + g.dz, 12);
+                if (backA === backB) { backB++; if (backB > 12) backB = 1; }
+
+                return { red, blue, front, back: [backA, backB].sort((a,b) => a-b) };
+            },
+
+            calcQiYun(g) {
+                let score = 50;
+                const r = g.rel.type;
+                if (r === '用生体') score += 30;
+                else if (r === '体克用') score += 15;
+                else if (r === '比和') score += 10;
+                else if (r === '体生用') score -= 15;
+                else if (r === '用克体') score -= 30;
+
+                const month = new Date().getMonth() + 1;
+                const season = month >= 3 && month <= 5 ? '木' : month >= 6 && month <= 8 ? '火' : month >= 9 && month <= 11 ? '金' : '水';
+                if (WUXING[g.ti] === season) score += 10;
+
+                return Math.max(0, Math.min(100, score));
+            },
+
+            matchSSQ(rec, res) {
+                if (!res) return null;
+                const mRed = rec.red.filter(r => res.red.includes(r)).length;
+                const mBlue = rec.blue[0] === res.blue[0] ? 1 : 0;
+                let prize = null;
+                if (mRed === 6 && mBlue === 1) prize = { level:1, name:'一等奖' };
+                else if (mRed === 6) prize = { level:2, name:'二等奖' };
+                else if (mRed === 5 && mBlue === 1) prize = { level:3, name:'三等奖' };
+                else if (mRed === 5 || (mRed === 4 && mBlue === 1)) prize = { level:4, name:'四等奖' };
+                else if (mRed === 4 || (mRed === 3 && mBlue === 1)) prize = { level:5, name:'五等奖' };
+                else if (mBlue === 1) prize = { level:6, name:'六等奖' };
+                return { mRed, mBlue, prize };
+            },
+
+            matchDLT(rec, res) {
+                if (!res) return null;
+                const mRed = rec.red.filter(r => res.red.includes(r)).length;
+                const mBlue = rec.blue.filter(b => res.blue.includes(b)).length;
+                let prize = null;
+                if (mRed === 5 && mBlue === 2) prize = { level:1, name:'一等奖' };
+                else if (mRed === 5 && mBlue === 1) prize = { level:2, name:'二等奖' };
+                else if (mRed === 5 || (mRed === 4 && mBlue === 2)) prize = { level:3, name:'三等奖' };
+                else if ((mRed === 4 && mBlue === 1) || (mRed === 3 && mBlue === 2)) prize = { level:4, name:'四等奖' };
+                else if (mRed === 4 || (mRed === 3 && mBlue === 1)) prize = { level:5, name:'五等奖' };
+                else if ((mRed === 2 && mBlue === 2) || mRed === 3) prize = { level:6, name:'六等奖' };
+                else if ((mRed === 1 && mBlue === 2) || (mRed === 2 && mBlue === 1)) prize = { level:7, name:'七等奖' };
+                else if (mBlue === 2 || (mRed === 1 && mBlue === 1) || mRed === 2) prize = { level:8, name:'八等奖' };
+                return { mRed, mBlue, prize };
+            },
+
+            async checkPeriod(type) {
+                const period = await Api.getPeriod(type);
+                const data = Store.data[type];
+
+                if (!data.period) {
+                    data.period = period;
+                    Store.scheduleSave();
+                    return;
                 }
-                
-                DataStore.data[type].currentPeriod = currentPeriod;
-                DataStore.data[type].records = [];
-                DataStore.data[type].result = null;
-                
-                await DataStore.saveNow();
+
+                if (data.period !== period && data.records.length > 0) {
+                    const result = await Api.getResult(type);
+                    const matched = data.records.map(r => ({
+                        ...r,
+                        match: type === 'ssq' ? this.matchSSQ(r, result) : this.matchDLT(r, result)
+                    }));
+                    data.history.unshift({ period: data.period, records: matched, result });
+                    if (data.history.length > CONFIG.MAX_HISTORY) data.history.pop();
+                    data.period = period;
+                    data.records = [];
+                    data.result = null;
+                    Store.scheduleSave();
+                }
             }
-        }
+        };
 
         // ============================================
-        // 起卦主函数
+        // UI 层
         // ============================================
-        async function qiGuaSSQ() {
-            const btnId = 'qiguaBtnSSQ';
-            UI.setButtonLoading(btnId, true);
-            
-            try {
-                const count = DataStore.incrementQiguaCount();
-                UI.updateQiguaDisplay(count);
-                
-                const guaInfo = calculateGua();
-                const lottery = generateLottery(guaInfo);
+        const UI = {
+            $(id) { return document.getElementById(id); },
 
-                document.getElementById('resultSection').classList.remove('hidden');
-                
-                UI.renderBalls('redBalls', lottery.redBalls, 'red');
-                UI.renderBalls('blueBalls', [lottery.blueBall], 'blue');
-                UI.renderGuaInfo('guaInfoShuangse', guaInfo);
-                UI.renderDetail('detailShuangse', guaInfo, lottery, 'shuangse');
+            balls(arr, type, small = false, matched = null) {
+                const cls = small ? `ball ball-${type} ball-small` : `ball ball-${type}`;
+                return arr.map(n => {
+                    const isMatch = matched && matched.includes(n);
+                    return `<div class="${cls}${isMatch ? ' matched' : ''}">${n}</div>`;
+                }).join('');
+            },
 
-                const record = {
-                    id: `pred_${Date.now()}`,
-                    timestamp: Date.now(),
-                    redBalls: lottery.redBalls,
-                    blueBalls: [lottery.blueBall],
-                    matched: null
-                };
-                
-                DataStore.addRecord('ssq', record);
-                UI.renderPredictions('ssq');
-            } finally {
-                UI.setButtonLoading(btnId, false);
+            renderResult(type, g, l) {
+                if (type === 'ssq') {
+                    this.$('ssq-red').innerHTML = this.balls(l.red, 'red');
+                    this.$('ssq-blue').innerHTML = this.balls(l.blue, 'blue');
+                    this.$('ssq-info').innerHTML = `
+                        <p><strong>本卦：</strong>${g.benGua.name}（第${g.benXu}卦）</p>
+                        <p><strong>变卦：</strong>${g.bianGua.name}（第${g.bianXu}卦）</p>
+                        <p><strong>动爻：</strong>第${g.dong}爻</p>
+                        <p><strong>体用：</strong>${g.rel.desc}</p>
+                    `;
+                } else {
+                    this.$('dlt-front').innerHTML = this.balls(l.front, 'red');
+                    this.$('dlt-back').innerHTML = this.balls(l.back, 'blue');
+                    this.$('dlt-info').innerHTML = `
+                        <p><strong>本卦：</strong>${g.benGua.name}（第${g.benXu}卦）</p>
+                        <p><strong>变卦：</strong>${g.bianGua.name}（第${g.bianXu}卦）</p>
+                        <p><strong>动爻：</strong>第${g.dong}爻</p>
+                        <p><strong>体用：</strong>${g.rel.desc}</p>
+                    `;
+                }
+            },
+
+            renderRecords(type) {
+                const data = Store.data[type];
+                const el = this.$(`${type}-records`);
+                const records = data.records;
+
+                if (records.length === 0) {
+                    el.innerHTML = '<p class="text-center py-4" style="color:var(--text-secondary)">暂无预测记录</p>';
+                    el.classList.remove('record-scroll');
+                    return;
+                }
+
+                el.classList.toggle('record-scroll', records.length >= 3);
+
+                const html = records.map((r, i) => {
+                    const t = new Date(r.time).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                    return `<div class="record-item">
+                        <span class="text-xs" style="color:var(--text-secondary)">#${i+1}</span>
+                        <div class="flex-1">${this.balls(r.red, 'red', true)} + ${this.balls(r.blue, 'blue', true)}</div>
+                        <span class="text-xs" style="color:var(--text-secondary)">${t}</span>
+                        <span class="prize-badge prize-none">待开奖</span>
+                    </div>`;
+                }).join('');
+
+                el.innerHTML = records.length >= 3 ? html + html : html;
+                this.renderHistory(type);
+            },
+
+            renderHistory(type) {
+                const el = this.$(`${type}-history`);
+                const history = Store.data[type].history;
+
+                if (history.length === 0) {
+                    el.innerHTML = '<p class="text-center py-4" style="color:var(--text-secondary)">暂无历史记录</p>';
+                    return;
+                }
+
+                el.innerHTML = history.map(h => {
+                    const resultHtml = h.result ? `<p class="text-sm mb-2" style="color:var(--text-secondary)">开奖：${h.result.red.join(',')} + ${h.result.blue.join(',')} (${h.result.date})</p>` : '';
+                    const recordsHtml = h.records.map((r, i) => {
+                        const t = new Date(r.time).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                        const prize = r.match?.prize;
+                        const matchedRed = h.result?.red || [];
+                        const matchedBlue = h.result?.blue || [];
+                        return `<div class="record-item">
+                            <span class="text-xs" style="color:var(--text-secondary)">#${i+1}</span>
+                            <div class="flex-1">${this.balls(r.red, 'red', true, matchedRed)} + ${this.balls(r.blue, 'blue', true, matchedBlue)}</div>
+                            <span class="text-xs" style="color:var(--text-secondary)">${t}</span>
+                            ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}</span>` : '<span style="color:var(--text-secondary)">-</span>'}
+                        </div>`;
+                    }).join('');
+                    return `<div class="mb-4 pb-4" style="border-bottom:1px solid rgba(212,175,55,0.1)">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-bold" style="color:var(--accent-gold)">第 ${h.period} 期</span>
+                            <span class="text-sm" style="color:var(--text-secondary)">${h.result ? '已开奖' : '未开奖'}</span>
+                        </div>
+                        ${resultHtml}
+                        <div class="space-y-1">${recordsHtml}</div>
+                    </div>`;
+                }).join('');
+            },
+
+            renderLotteryResult(type) {
+                const data = Store.data[type];
+                const el = this.$(`${type}-result`);
+                if (data.result) {
+                    el.innerHTML = `<strong>开奖：</strong>${this.balls(data.result.red, 'red', true)} + ${this.balls(data.result.blue, 'blue', true)} <span style="color:var(--text-secondary)">(${data.result.date})</span>`;
+                } else {
+                    el.innerHTML = '开奖结果：待更新';
+                }
+            },
+
+            renderQiYun(score) {
+                const level = QIYUN_LEVELS.find(l => score >= l.min) || QIYUN_LEVELS[4];
+                this.$('qiyun-display').innerHTML = `
+                    <div class="qiyun-card qiyun-${level.color}">
+                        <div class="text-2xl font-bold">${level.name}</div>
+                        <div class="text-xl font-bold mt-1">${score}分</div>
+                        <p class="mt-2">${level.desc}</p>
+                        <p class="text-sm mt-1" style="opacity:0.8">${level.advice}</p>
+                    </div>`;
+            },
+
+            setTime(g) {
+                this.$('time-display').textContent = `${g.y}年${g.m}月${g.d}日 ${g.h}时${g.min}分${g.s}秒`;
+            },
+
+            setPeriod(type, period) {
+                this.$(`${type}-period`).textContent = `期号：${period}`;
+            },
+
+            setCount(n) {
+                this.$('qigua-count').textContent = n;
+            },
+
+            setLoading(id, loading) {
+                const btn = this.$(id);
+                if (loading) { btn.disabled = true; btn.classList.add('loading'); }
+                else { btn.disabled = false; btn.classList.remove('loading'); }
+            },
+
+            toggleDetail(type) {
+                const el = this.$(`${type}-detail`);
+                const btn = el.previousElementSibling;
+                if (el.classList.contains('hidden')) {
+                    el.classList.remove('hidden');
+                    btn.textContent = '[ 收起详细推导 ]';
+                } else {
+                    el.classList.add('hidden');
+                    btn.textContent = '[ 查看详细推导 ]';
+                }
+            },
+
+            toast(msg, type = 'info') {
+                const el = this.$('toast');
+                el.textContent = msg;
+                el.className = `toast ${type} show`;
+                setTimeout(() => el.classList.remove('show'), 3000);
             }
-        }
-
-        async function qiGuaDLT() {
-            const btnId = 'qiguaBtnDLT';
-            UI.setButtonLoading(btnId, true);
-            
-            try {
-                const count = DataStore.incrementQiguaCount();
-                UI.updateQiguaDisplay(count);
-                
-                const guaInfo = calculateGua();
-                const lottery = generateLottery(guaInfo);
-
-                document.getElementById('resultSection').classList.remove('hidden');
-                
-                UI.renderBalls('frontBalls', lottery.frontBalls, 'red');
-                UI.renderBalls('backBalls', lottery.backBalls, 'blue');
-                UI.renderGuaInfo('guaInfoDale', guaInfo);
-                UI.renderDetail('detailDale', guaInfo, lottery, 'dale');
-
-                const record = {
-                    id: `pred_${Date.now()}`,
-                    timestamp: Date.now(),
-                    redBalls: lottery.frontBalls,
-                    blueBalls: lottery.backBalls,
-                    matched: null
-                };
-                
-                DataStore.addRecord('dlt', record);
-                UI.renderPredictions('dlt');
-            } finally {
-                UI.setButtonLoading(btnId, false);
-            }
-        }
-
-        function toggleDetail(type) {
-            const detail = document.getElementById(`detail${type.charAt(0).toUpperCase() + type.slice(1)}`);
-            const btn = detail.previousElementSibling;
-            
-            if (detail.classList.contains('hidden')) {
-                detail.classList.remove('hidden');
-                btn.textContent = '[ 收起详细推导 ]';
-            } else {
-                detail.classList.add('hidden');
-                btn.textContent = '[ 查看详细推导 ]';
-            }
-        }
-
-        async function refreshLotteryData(type) {
-            const result = await API.getLotteryResult(type);
-            const period = await API.getCurrentPeriod(type);
-            
-            document.getElementById(`${type}Period`).textContent = `期号：${period}`;
-            
-            if (result) {
-                DataStore.data[type].result = result;
-                await DataStore.saveNow();
-                UI.renderLotteryResult(type, result);
-                UI.renderPredictions(type);
-            }
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type} show`;
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+        };
 
         // ============================================
-        // 初始化
+        // 应用入口
         // ============================================
-        async function init() {
-            await DataStore.load();
-            
-            UI.updateQiguaDisplay(DataStore.data.qigua_count);
-            
-            await checkPeriod('ssq');
-            await checkPeriod('dlt');
-            
-            document.getElementById('ssqPeriod').textContent = `期号：${DataStore.data.ssq.currentPeriod || '--'}`;
-            document.getElementById('dltPeriod').textContent = `期号：${DataStore.data.dlt.currentPeriod || '--'}`;
-            
-            UI.renderPredictions('ssq');
-            UI.renderPredictions('dlt');
-            
-            await refreshLotteryData('ssq');
-            await refreshLotteryData('dlt');
-            
-            setInterval(async () => {
-                await refreshLotteryData('ssq');
-                await refreshLotteryData('dlt');
-            }, 30 * 60 * 1000);
-        }
+        const App = {
+            async init() {
+                // 加载不蒜子统计
+                if (location.protocol !== 'file:') {
+                    const script = document.createElement('script');
+                    script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+                    script.async = true;
+                    document.head.appendChild(script);
+                } else {
+                    UI.$('pv').textContent = '--';
+                    UI.$('uv').textContent = '--';
+                }
 
-        document.addEventListener('DOMContentLoaded', init);
+                // 加载数据
+                await Store.load();
+                UI.setCount(Store.data.qiguaCount);
+
+                // 检查周期
+                await Core.checkPeriod('ssq');
+                await Core.checkPeriod('dlt');
+
+                UI.setPeriod('ssq', Store.data.ssq.period || '--');
+                UI.setPeriod('dlt', Store.data.dlt.period || '--');
+                UI.renderRecords('ssq');
+                UI.renderRecords('dlt');
+
+                // 获取开奖结果
+                await this.refreshData('ssq');
+                await this.refreshData('dlt');
+
+                // 定时刷新
+                setInterval(() => {
+                    this.refreshData('ssq');
+                    this.refreshData('dlt');
+                }, 30 * 60 * 1000);
+            },
+
+            async refreshData(type) {
+                const result = await Api.getResult(type);
+                const period = await Api.getPeriod(type);
+                UI.setPeriod(type, period);
+                if (result) {
+                    Store.data[type].result = result;
+                    Store.scheduleSave();
+                    UI.renderLotteryResult(type);
+                    UI.renderRecords(type);
+                }
+            },
+
+            async doQiGua(type) {
+                const btnId = type === 'ssq' ? 'btn-ssq' : 'btn-dlt';
+                UI.setLoading(btnId, true);
+
+                try {
+                    const count = Store.incCount();
+                    UI.setCount(count);
+
+                    const g = Core.calcGua();
+                    const l = Core.genLottery(g);
+
+                    UI.setTime(g);
+                    UI.$('result-section').classList.remove('hidden');
+                    UI.renderResult(type, g, l);
+
+                    const record = {
+                        id: `p_${Date.now()}`,
+                        time: Date.now(),
+                        red: type === 'ssq' ? l.red : l.front,
+                        blue: type === 'ssq' ? l.blue : l.back
+                    };
+
+                    Store.addRecord(type, record);
+                    UI.renderRecords(type);
+                } finally {
+                    UI.setLoading(btnId, false);
+                }
+            },
+
+            doQiYun() {
+                const key = `qiyun_${new Date().toISOString().slice(0,10)}`;
+                const cached = localStorage.getItem(key);
+                if (cached) {
+                    UI.renderQiYun(JSON.parse(cached));
+                    return;
+                }
+
+                const g = Core.calcGua();
+                const score = Core.calcQiYun(g);
+                localStorage.setItem(key, JSON.stringify(score));
+                UI.renderQiYun(score);
+            }
+        };
+
+        // 绑定事件
+        document.getElementById('btn-ssq').addEventListener('click', () => App.doQiGua('ssq'));
+        document.getElementById('btn-dlt').addEventListener('click', () => App.doQiGua('dlt'));
+        document.getElementById('btn-qiyun').addEventListener('click', () => App.doQiYun());
+
+        // 启动
+        document.addEventListener('DOMContentLoaded', () => App.init());
+
+        // 暴露给全局
+        window.App = App;
+        window.UI = UI;
+
+    })();
     </script>
 </body>
 </html>
