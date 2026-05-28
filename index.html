@@ -720,6 +720,7 @@
             $(id) { return document.getElementById(id); },
 
             balls(arr, type, small = false, matched = null) {
+                if (!arr || !Array.isArray(arr)) return '';
                 const cls = small ? `ball ball-${type} ball-small` : `ball ball-${type}`;
                 return arr.map(n => {
                     const isMatch = matched && matched.includes(n);
