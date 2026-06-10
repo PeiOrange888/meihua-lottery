@@ -555,6 +555,7 @@
         const CONFIG = {
             FIREBASE_URL: 'https://meihua-abb40-default-rtdb.firebaseio.com/lottery.json',
             LOTTERY_API: 'https://api.huiniao.top/interface/home/lotteryHistory',
+            DATA_VERSION: 2,
             SAVE_DELAY: 1000,
             MAX_HISTORY: 120
         };
@@ -721,6 +722,8 @@
 
             serializeBranch(branch) {
                 return {
+                    schemaVersion: CONFIG.DATA_VERSION,
+                    updatedAt: Date.now(),
                     period: branch.period || '',
                     records: this.recordsById(branch.records || []),
                     result: branch.result || null,
@@ -765,7 +768,11 @@
                         writes.push(fetch(CONFIG.FIREBASE_URL, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ qigua_count: this.data.qiguaCount })
+                            body: JSON.stringify({
+                                schema_version: CONFIG.DATA_VERSION,
+                                updated_at: Date.now(),
+                                qigua_count: this.data.qiguaCount
+                            })
                         }));
                     }
                     this.dirtyTypes.forEach(type => {
