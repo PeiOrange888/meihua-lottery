@@ -668,7 +668,32 @@
         // ============================================
         const Store = {
             data: { qiguaCount: 0, ssq: { period:'', records:[], result:null, history:[] }, dlt: { period:'', records:[], result:null, history:[] } },
-            saveTimer: null, dirty: false,
+            saveTimer: null,
+            dirtyMeta: false,
+            dirtyTypes: new Set(),
+
+            normalizeRecords(value) {
+                if (Array.isArray(value)) return value.filter(Boolean);
+                if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
+                return [];
+            },
+
+            normalizeHistory(value) {
+                const groups = this.normalizeRecords(value).map(group => ({
+                    ...group,
+                    records: this.normalizeRecords(group.records)
+                }));
+                return groups.sort((a, b) => Core.comparePeriod(b.period, a.period));
+            },
+
+            normalizeBranch(branch = {}) {
+                return {
+                    period: branch.period || '',
+                    records: this.normalizeRecords(branch.records),
+                    result: branch.result || null,
+                    history: this.normalizeHistory(branch.history)
+                };
+            },
 
             async load() {
                 try {
@@ -676,31 +701,65 @@
                     const d = await res.json();
                     if (d) {
                         this.data.qiguaCount = d.qigua_count || 0;
-                        if (d.ssq) this.data.ssq = { period:'', records:[], result:null, history:[], ...d.ssq };
-                        if (d.dlt) this.data.dlt = { period:'', records:[], result:null, history:[], ...d.dlt };
+                        if (d.ssq) this.data.ssq = this.normalizeBranch(d.ssq);
+                        if (d.dlt) this.data.dlt = this.normalizeBranch(d.dlt);
                     }
                 } catch(e) { console.error('加载数据失败:', e); }
             },
 
-            scheduleSave() {
-                this.dirty = true;
+            scheduleSave(type = null) {
+                if (type) this.dirtyTypes.add(type);
+                else {
+                    this.dirtyMeta = true;
+                    this.dirtyTypes.add('ssq');
+                    this.dirtyTypes.add('dlt');
+                }
+                if (this.saveTimer) clearTimeout(this.saveTimer);
+                this.saveTimer = setTimeout(() => this.save(), CONFIG.SAVE_DELAY);
+            },
+
+            scheduleMetaSave() {
+                this.dirtyMeta = true;
                 if (this.saveTimer) clearTimeout(this.saveTimer);
                 this.saveTimer = setTimeout(() => this.save(), CONFIG.SAVE_DELAY);
             },
 
             async save() {
-                if (!this.dirty) return;
+                if (!this.dirtyMeta && this.dirtyTypes.size === 0) return;
                 try {
-                    const res = await fetch(CONFIG.FIREBASE_URL, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ qigua_count: this.data.qiguaCount, ssq: this.data.ssq, dlt: this.data.dlt })
+                    const writes = [];
+                    if (this.dirtyMeta) {
+                        writes.push(fetch(CONFIG.FIREBASE_URL, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ qigua_count: this.data.qiguaCount })
+                        }));
+                    }
+                    this.dirtyTypes.forEach(type => {
+                        writes.push(fetch(CONFIG.FIREBASE_URL.replace('.json', `/${type}.json`), {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.data[type])
+                        }));
                     });
-                    if (res.ok) this.dirty = false;
+                    const results = await Promise.all(writes);
+                    if (results.every(res => res.ok)) {
+                        this.dirtyMeta = false;
+                        this.dirtyTypes.clear();
+                    }
                 } catch(e) { console.error('保存数据失败:', e); }
             },
 
-            addRecord(type, record) { this.data[type].records.push(record); this.scheduleSave(); },
-            incCount() { this.data.qiguaCount++; this.scheduleSave(); return this.data.qiguaCount; }
+            addRecord(type, record) {
+                this.data[type].records.push(record);
+                this.scheduleSave(type);
+            },
+
+            incCount() {
+                this.data.qiguaCount++;
+                this.scheduleMetaSave();
+                return this.data.qiguaCount;
+            }
         };
 
         // ============================================
@@ -922,7 +981,7 @@
                 data.result = latest;
 
                 if (!data.records.length) {
-                    Store.scheduleSave();
+                    Store.scheduleSave(type);
                     return;
                 }
 
@@ -949,7 +1008,7 @@
                 Object.values(groups).forEach(group => this.mergeHistory(data, group));
                 data.records = pending;
                 if (!data.records.length) data.period = nextPeriod || data.period;
-                Store.scheduleSave();
+                Store.scheduleSave(type);
             },
 
             isWinner(record) {
@@ -1152,7 +1211,7 @@
                 if (period) UI.setPeriod(type, period);
                 if (result) {
                     Store.data[type].result = result;
-                    Store.scheduleSave();
+                    Store.scheduleSave(type);
                     UI.renderLotteryResult(type);
                     UI.renderRecords(type);
                 }
