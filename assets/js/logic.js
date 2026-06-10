@@ -267,6 +267,13 @@ const Core = {
             ...group,
             records: (group.records || []).filter(record => this.isWinner(record) && this.inRange(record, range))
         })).filter(group => group.records.length > 0);
+    },
+
+    settledGroups(type, range) {
+        return (Store.data[type].history || []).map(group => ({
+            ...group,
+            records: (group.records || []).filter(record => (record.match || record.matchResult) && this.inRange(record, range))
+        })).filter(group => group.records.length > 0);
     }
 };
 

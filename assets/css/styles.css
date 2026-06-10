@@ -294,9 +294,14 @@ body::before {
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border-ink);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
+}
+
+.record-item .flex-1 {
+    min-width: 160px;
 }
 
 .record-item:last-child { border-bottom: none; }

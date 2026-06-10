@@ -55,6 +55,7 @@ const UI = {
         }).join('');
         el.innerHTML = records.length >= 3 ? html + html : html;
         this.renderHistory(type);
+        this.renderSettlements(type);
     },
 
     renderHistory(type) {
@@ -95,6 +96,45 @@ const UI = {
         }).join('');
     },
 
+    renderSettlements(type) {
+        const el = this.$(`${type}-settled`);
+        const settledHistory = Core.settledGroups(type, this.historyRange);
+        if (settledHistory.length === 0) {
+            const rangeText = this.historyRange === 'all' ? '' : `（近${this.historyRange}天）`;
+            el.innerHTML = `<p class="text-center text-secondary">暂无结算明细${rangeText}</p>`;
+            return;
+        }
+
+        const user = User.get();
+        el.innerHTML = settledHistory.map(h => {
+            const resRed = Array.isArray(h.result?.red) ? h.result.red : Array.isArray(h.result?.redBalls) ? h.result.redBalls : [];
+            const resBlue = Array.isArray(h.result?.blue) ? h.result.blue : Array.isArray(h.result?.blueBalls) ? h.result.blueBalls : [];
+            const recordsHtml = h.records.map(r => {
+                const t = new Date(r.time||r.timestamp).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                const red = Array.isArray(r.red) ? r.red : Array.isArray(r.redBalls) ? r.redBalls : [];
+                const blue = Array.isArray(r.blue) ? r.blue : Array.isArray(r.blueBalls) ? r.blueBalls : [];
+                const matched = r.match || r.matchResult || {};
+                const prize = matched.prize;
+                const nick = r.user?.nickname || '匿名';
+                const nameStyle = r.user?.id === user.id ? 'color:var(--accent-cinnabar);font-weight:600' : 'color:var(--text-secondary)';
+                const badge = prize
+                    ? `<span class="prize-badge prize-${prize.level}">${prize.name}（${matched.mRed||0}+${matched.mBlue||0}）</span>`
+                    : `<span class="prize-badge prize-none">未中奖（${matched.mRed||0}+${matched.mBlue||0}）</span>`;
+                return `<div class="record-item">
+                    <span class="text-sm" style="${nameStyle}">${nick}</span>
+                    <div class="flex-1">${this.balls(red,'red',true,resRed)} + ${this.balls(blue,'blue',true,resBlue)}</div>
+                    <span class="text-sm text-secondary">${t}</span>
+                    ${badge}
+                </div>`;
+            }).join('');
+            return `<div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-ink)">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+                    <span style="font-weight:600">第 ${h.period} 期</span>
+                    <span class="text-sm text-secondary">开奖：${resRed.join(',')} + ${resBlue.join(',')}</span>
+                </div><div>${recordsHtml}</div></div>`;
+        }).join('');
+    },
+
     setHistoryRange(range) {
         this.historyRange = range;
         document.querySelectorAll('[data-history-range]').forEach(btn => {
@@ -102,6 +142,8 @@ const UI = {
         });
         this.renderHistory('ssq');
         this.renderHistory('dlt');
+        this.renderSettlements('ssq');
+        this.renderSettlements('dlt');
     },
 
     renderLotteryResult(type) {
