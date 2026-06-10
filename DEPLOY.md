@@ -90,6 +90,10 @@ A: 确认 `assets/css/styles.css` 已经上传，并且仓库保留了 `assets/`
 
 A: 确认 `assets/js/` 下的脚本文件都已上传。当前页面按顺序加载 `config.js`、`data.js`、`logic.js`、`ui.js`、`app.js`。
 
+### Q: 推送后页面还是旧样式或旧脚本？
+
+A: GitHub Pages 和浏览器可能缓存静态资源。`index.html` 中的 CSS/JS 链接带有 `?v=` 版本号；修改静态资源后可以递增这个版本号来刷新缓存。
+
 ### Q: 访问时显示 404？
 
 A: 等待 2-5 分钟后再试，GitHub Pages 需要时间部署。
