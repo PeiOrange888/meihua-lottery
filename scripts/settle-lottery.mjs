@@ -5,13 +5,26 @@ const MAX_HISTORY = 120;
 const DRY_RUN = process.argv.includes('--dry-run');
 
 const TYPES = ['ssq', 'dlt'];
+const RETRY_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function fetchJson(url, options) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    throw new Error(`${options?.method || 'GET'} ${url} failed: ${response.status}`);
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return response.json();
+      lastError = new Error(`${options?.method || 'GET'} ${url} failed: ${response.status}`);
+      if (!RETRY_STATUSES.has(response.status)) throw lastError;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < 3) await sleep(attempt * 1500);
   }
-  return response.json();
+  throw lastError;
 }
 
 function parseResult(type, item) {
