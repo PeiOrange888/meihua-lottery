@@ -295,6 +295,29 @@
         .prize-8 { background: #aaaaaa; color: var(--bg-ink); }
         .prize-none { background: transparent; color: #aaa; font-weight: 400; }
 
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-btn {
+            border: 1px solid var(--border-ink);
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            border-color: var(--accent-cinnabar);
+            color: var(--accent-cinnabar);
+            font-weight: 600;
+        }
+
         /* ===== 详情框 ===== */
         .detail-box {
             background: rgba(26, 26, 26, 0.03);
@@ -455,6 +478,12 @@
         <!-- 历史记录 -->
         <section class="gua-border mb-8">
             <h3 class="section-title text-center" style="border-left:none;text-align:center">历史中奖</h3>
+            <div class="filter-bar">
+                <button class="filter-btn active" data-history-range="all">全部</button>
+                <button class="filter-btn" data-history-range="7">近7天</button>
+                <button class="filter-btn" data-history-range="30">近30天</button>
+                <button class="filter-btn" data-history-range="90">近90天</button>
+            </div>
             <div class="grid-2">
                 <div>
                     <p class="text-sm text-secondary mb-4">福彩双色球</p>
@@ -495,7 +524,7 @@
             FIREBASE_URL: 'https://meihua-abb40-default-rtdb.firebaseio.com/lottery.json',
             LOTTERY_API: 'https://api.huiniao.top/interface/home/lotteryHistory',
             SAVE_DELAY: 1000,
-            MAX_HISTORY: 10
+            MAX_HISTORY: 120
         };
 
         // ============================================
@@ -646,11 +675,40 @@
         // API
         // ============================================
         const Api = {
+            parseResult(type, item) {
+                if (!item) return null;
+                if (type === 'dlt') {
+                    return {
+                        period: item.code,
+                        nextPeriod: item.next_code,
+                        date: item.day,
+                        red: [item.one, item.two, item.three, item.four, item.five].map(Number),
+                        blue: [item.six, item.seven].map(Number)
+                    };
+                }
+                return {
+                    period: item.code,
+                    nextPeriod: item.next_code,
+                    date: item.day,
+                    red: [item.one, item.two, item.three, item.four, item.five, item.six].map(Number),
+                    blue: [Number(item.seven)]
+                };
+            },
+
+            async getLatest(type) {
+                try {
+                    const res = await fetch(`${CONFIG.LOTTERY_API}?type=${type}&page=1&limit=1`);
+                    const d = await res.json();
+                    return d.code === 1 && d.data.last ? this.parseResult(type, d.data.last) : null;
+                } catch(e) { return null; }
+            },
+
             async getPeriod(type) {
                 try {
                     const res = await fetch(`${CONFIG.LOTTERY_API}?type=${type}&page=1&limit=1`);
                     const d = await res.json();
-                    return d.code === 1 && d.data.last ? d.data.last.code : null;
+                    if (d.code === 1 && d.data.last) return d.data.last.next_code || d.data.last.code;
+                    return null;
                 } catch(e) { return type === 'ssq' ? '2026058' : '26056'; }
             },
 
@@ -658,16 +716,20 @@
                 try {
                     const res = await fetch(`${CONFIG.LOTTERY_API}?type=${type}&page=1&limit=1`);
                     const d = await res.json();
-                    if (d.code === 1 && d.data.last) {
-                        const last = d.data.last;
-                        return {
-                            period: last.code, date: last.day,
-                            red: [last.one, last.two, last.three, last.four, last.five, last.six].map(Number),
-                            blue: type === 'ssq' ? [Number(last.seven)] : [Number(last.six), Number(last.seven)]
-                        };
-                    }
+                    if (d.code === 1 && d.data.last) return this.parseResult(type, d.data.last);
                 } catch(e) {}
                 return null;
+            },
+
+            async getResults(type, limit = 30) {
+                try {
+                    const res = await fetch(`${CONFIG.LOTTERY_API}?type=${type}&page=1&limit=${limit}`);
+                    const d = await res.json();
+                    const list = d.code === 1 && d.data?.data?.list ? d.data.data.list : [];
+                    return list.map(item => this.parseResult(type, item)).filter(Boolean);
+                } catch(e) {
+                    return [];
+                }
             }
         };
 
@@ -795,22 +857,86 @@
                 return {mRed,mBlue,prize};
             },
 
-            async checkPeriod(type) {
-                const period = await Api.getPeriod(type);
-                const data = Store.data[type];
-                if (!data.period) { data.period = period; Store.scheduleSave(); return; }
-                if (data.period !== period && data.records.length > 0) {
-                    const result = await Api.getResult(type);
-                    const matched = data.records.filter(r => {
-                        const red = Array.isArray(r.red) ? r.red : Array.isArray(r.redBalls) ? r.redBalls : null;
-                        const blue = Array.isArray(r.blue) ? r.blue : Array.isArray(r.blueBalls) ? r.blueBalls : null;
-                        return red && blue;
-                    }).map(r => ({ ...r, match: type==='ssq' ? this.matchSSQ(r,result) : this.matchDLT(r,result) }));
-                    data.history.unshift({ period: data.period, records: matched, result });
-                    if (data.history.length > CONFIG.MAX_HISTORY) data.history.pop();
-                    data.period = period; data.records = []; data.result = null;
-                    Store.scheduleSave();
+            comparePeriod(a, b) {
+                const na = Number(String(a || '').replace(/\D/g, ''));
+                const nb = Number(String(b || '').replace(/\D/g, ''));
+                if (!na || !nb) return 0;
+                return na - nb;
+            },
+
+            mergeHistory(data, group) {
+                const existing = data.history.find(h => h.period === group.period);
+                if (existing) {
+                    existing.result = group.result;
+                    const ids = new Set((existing.records || []).map(r => r.id));
+                    group.records.forEach(record => {
+                        if (!ids.has(record.id)) existing.records.push(record);
+                    });
+                } else {
+                    data.history.unshift(group);
                 }
+                data.history.sort((a, b) => this.comparePeriod(b.period, a.period));
+                if (data.history.length > CONFIG.MAX_HISTORY) data.history.length = CONFIG.MAX_HISTORY;
+            },
+
+            async checkPeriod(type) {
+                const latest = await Api.getLatest(type);
+                if (!latest) return;
+
+                const data = Store.data[type];
+                const previousPeriod = data.period;
+                const nextPeriod = latest.nextPeriod || await Api.getPeriod(type);
+                data.period = nextPeriod || data.period || latest.period;
+                data.result = latest;
+
+                if (!data.records.length) {
+                    Store.scheduleSave();
+                    return;
+                }
+
+                const results = await Api.getResults(type, 40);
+                const resultsByPeriod = {};
+                results.forEach(result => { resultsByPeriod[result.period] = result; });
+
+                const pending = [];
+                const groups = {};
+                data.records.forEach(record => {
+                    const recordPeriod = record.period || previousPeriod || data.period;
+                    const normalized = { ...record, period: recordPeriod, status: record.status || 'pending' };
+                    const result = resultsByPeriod[recordPeriod];
+                    if (result && this.comparePeriod(recordPeriod, latest.period) <= 0) {
+                        const match = type === 'ssq' ? this.matchSSQ(normalized, result) : this.matchDLT(normalized, result);
+                        const settled = { ...normalized, status: 'settled', match };
+                        if (!groups[recordPeriod]) groups[recordPeriod] = { period: recordPeriod, records: [], result };
+                        groups[recordPeriod].records.push(settled);
+                    } else {
+                        pending.push(normalized);
+                    }
+                });
+
+                Object.values(groups).forEach(group => this.mergeHistory(data, group));
+                data.records = pending;
+                if (!data.records.length) data.period = nextPeriod || data.period;
+                Store.scheduleSave();
+            },
+
+            isWinner(record) {
+                return !!(record.match?.prize || record.matchResult?.prize);
+            },
+
+            inRange(record, range) {
+                if (range === 'all') return true;
+                const days = Number(range);
+                if (!days) return true;
+                const time = record.time || record.timestamp;
+                return time && Date.now() - time <= days * 24 * 60 * 60 * 1000;
+            },
+
+            winningGroups(type, range) {
+                return (Store.data[type].history || []).map(group => ({
+                    ...group,
+                    records: (group.records || []).filter(record => this.isWinner(record) && this.inRange(record, range))
+                })).filter(group => group.records.length > 0);
             }
         };
 
@@ -818,6 +944,8 @@
         // UI
         // ============================================
         const UI = {
+            historyRange: 'all',
+
             $(id) { return document.getElementById(id); },
 
             balls(arr, type, small = false, matched = null) {
@@ -860,11 +988,12 @@
                     const nick = r.user?.nickname || '匿名';
                     const isSelf = r.user?.id === user.id;
                     const nameStyle = isSelf ? 'color:var(--accent-cinnabar);font-weight:600' : 'color:var(--text-secondary)';
+                    const periodText = r.period ? `第${r.period}期` : '待开奖';
                     return `<div class="record-item">
                         <span class="text-sm" style="${nameStyle}">${nick}</span>
                         <div class="flex-1">${this.balls(red,'red',true)} + ${this.balls(blue,'blue',true)}</div>
                         <span class="text-sm text-secondary">${t}</span>
-                        <span class="prize-badge prize-none">待开奖</span>
+                        <span class="prize-badge prize-none">${periodText}</span>
                     </div>`;
                 }).join('');
                 el.innerHTML = records.length >= 3 ? html + html : html;
@@ -873,14 +1002,14 @@
 
             renderHistory(type) {
                 const el = this.$(`${type}-history`);
-                const history = Store.data[type].history;
-                if (!history || history.length === 0) { el.innerHTML = '<p class="text-center text-secondary">暂无记录</p>'; return; }
+                const winningHistory = Core.winningGroups(type, this.historyRange);
+                if (winningHistory.length === 0) {
+                    const rangeText = this.historyRange === 'all' ? '' : `（近${this.historyRange}天）`;
+                    el.innerHTML = `<p class="text-center text-secondary">暂无中奖记录${rangeText}</p>`;
+                    return;
+                }
                 
-                // 只保留已开奖且有中奖的记录
-                const winningHistory = history.filter(h => h.result && h.records.some(r => r.match?.prize || r.matchResult?.prize));
-                
-                if (winningHistory.length === 0) { el.innerHTML = '<p class="text-center text-secondary">暂无中奖记录</p>'; return; }
-                
+                const user = User.get();
                 el.innerHTML = winningHistory.map(h => {
                     const resRed = Array.isArray(h.result?.red) ? h.result.red : Array.isArray(h.result?.redBalls) ? h.result.redBalls : [];
                     const resBlue = Array.isArray(h.result?.blue) ? h.result.blue : Array.isArray(h.result?.blueBalls) ? h.result.blueBalls : [];
@@ -909,13 +1038,22 @@
                 }).join('');
             },
 
+            setHistoryRange(range) {
+                this.historyRange = range;
+                document.querySelectorAll('[data-history-range]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.historyRange === range);
+                });
+                this.renderHistory('ssq');
+                this.renderHistory('dlt');
+            },
+
             renderLotteryResult(type) {
                 const data = Store.data[type];
                 const el = this.$(`${type}-result`);
                 if (data.result) {
                     const red = Array.isArray(data.result.red) ? data.result.red : Array.isArray(data.result.redBalls) ? data.result.redBalls : [];
                     const blue = Array.isArray(data.result.blue) ? data.result.blue : Array.isArray(data.result.blueBalls) ? data.result.blueBalls : [];
-                    el.innerHTML = `<strong>开奖：</strong>${this.balls(red,'red',true)} + ${this.balls(blue,'blue',true)} <span class="text-secondary">(${data.result.date})</span>`;
+                    el.innerHTML = `<strong>最近开奖：</strong>${this.balls(red,'red',true)} + ${this.balls(blue,'blue',true)} <span class="text-secondary">第${data.result.period}期 ${data.result.date}</span>`;
                 } else { el.innerHTML = '开奖结果：待更新'; }
             },
 
@@ -929,7 +1067,7 @@
             },
 
             setTime(g) { this.$('time-display').textContent = `${g.y}年${g.m}月${g.d}日 ${g.h}时${g.min}分${g.s}秒`; },
-            setPeriod(type, period) { this.$(`${type}-period`).textContent = `期号：${period}`; },
+            setPeriod(type, period) { this.$(`${type}-period`).textContent = `预测期号：${period}`; },
             setCount(n) { this.$('qigua-count').textContent = n; },
 
             setLoading(id, loading) {
@@ -976,7 +1114,8 @@
             },
 
             async _updateLottery(type) {
-                const result = await Api.getResult(type);
+                await Core.checkPeriod(type);
+                const result = Store.data[type].result || await Api.getResult(type);
                 const period = await Api.getPeriod(type);
                 if (period) UI.setPeriod(type, period);
                 if (result) {
@@ -997,7 +1136,15 @@
                     UI.$('result-section').classList.remove('hidden');
                     UI.renderResult(type, g, l);
                     const user = User.get();
-                    const record = { id: `p_${Date.now()}`, time: Date.now(), user: user, red: type==='ssq' ? l.red : l.front, blue: type==='ssq' ? [l.blue] : l.back };
+                    const record = {
+                        id: `p_${Date.now()}`,
+                        time: Date.now(),
+                        user: user,
+                        period: Store.data[type].period,
+                        status: 'pending',
+                        red: type==='ssq' ? l.red : l.front,
+                        blue: type==='ssq' ? [l.blue] : l.back
+                    };
                     Store.addRecord(type, record);
                     UI.renderRecords(type);
                 } finally { UI.setLoading(btnId, false); }
@@ -1016,6 +1163,9 @@
         document.getElementById('btn-ssq').addEventListener('click', () => App.doQiGua('ssq'));
         document.getElementById('btn-dlt').addEventListener('click', () => App.doQiGua('dlt'));
         document.getElementById('btn-qiyun').addEventListener('click', () => App.doQiYun());
+        document.querySelectorAll('[data-history-range]').forEach(btn => {
+            btn.addEventListener('click', () => UI.setHistoryRange(btn.dataset.historyRange));
+        });
         document.addEventListener('DOMContentLoaded', () => App.init());
 
         window.App = App; window.UI = UI;
