@@ -1010,11 +1010,14 @@
                 const data = Store.data[type];
                 const previousPeriod = data.period;
                 const nextPeriod = latest.nextPeriod || await Api.getPeriod(type);
-                data.period = nextPeriod || data.period || latest.period;
+                const targetPeriod = nextPeriod || data.period || latest.period;
+                const periodChanged = data.period !== targetPeriod;
+                const resultChanged = data.result?.period !== latest.period;
+                data.period = targetPeriod;
                 data.result = latest;
 
                 if (!data.records.length) {
-                    Store.scheduleSave(type);
+                    if (periodChanged || resultChanged) Store.scheduleSave(type);
                     return;
                 }
 
@@ -1039,9 +1042,10 @@
                 });
 
                 Object.values(groups).forEach(group => this.mergeHistory(data, group));
+                const settledCount = Object.values(groups).reduce((sum, group) => sum + group.records.length, 0);
                 data.records = pending;
                 if (!data.records.length) data.period = nextPeriod || data.period;
-                Store.scheduleSave(type);
+                if (periodChanged || resultChanged || settledCount > 0) Store.scheduleSave(type);
             },
 
             isWinner(record) {
@@ -1239,12 +1243,13 @@
 
             async _updateLottery(type) {
                 await Core.checkPeriod(type);
+                const previousResultPeriod = Store.data[type].result?.period;
                 const result = Store.data[type].result || await Api.getResult(type);
                 const period = await Api.getPeriod(type);
                 if (period) UI.setPeriod(type, period);
                 if (result) {
                     Store.data[type].result = result;
-                    Store.scheduleSave(type);
+                    if (previousResultPeriod !== result.period) Store.scheduleSave(type);
                     UI.renderLotteryResult(type);
                     UI.renderRecords(type);
                 }
