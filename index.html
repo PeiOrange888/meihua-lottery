@@ -695,6 +695,39 @@
                 };
             },
 
+            keyForRecord(record, fallback) {
+                return String(record.id || record.key || fallback).replace(/[.#$/[\]]/g, '_');
+            },
+
+            recordsById(records = []) {
+                return records.reduce((acc, record, index) => {
+                    if (!record) return acc;
+                    acc[this.keyForRecord(record, index)] = record;
+                    return acc;
+                }, {});
+            },
+
+            historyByPeriod(history = []) {
+                return history.reduce((acc, group, index) => {
+                    if (!group) return acc;
+                    const periodKey = String(group.period || index).replace(/[.#$/[\]]/g, '_');
+                    acc[periodKey] = {
+                        ...group,
+                        records: this.recordsById(group.records || [])
+                    };
+                    return acc;
+                }, {});
+            },
+
+            serializeBranch(branch) {
+                return {
+                    period: branch.period || '',
+                    records: this.recordsById(branch.records || []),
+                    result: branch.result || null,
+                    history: this.historyByPeriod(branch.history || [])
+                };
+            },
+
             async load() {
                 try {
                     const res = await fetch(CONFIG.FIREBASE_URL);
@@ -739,7 +772,7 @@
                         writes.push(fetch(CONFIG.FIREBASE_URL.replace('.json', `/${type}.json`), {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(this.data[type])
+                            body: JSON.stringify(this.serializeBranch(this.data[type]))
                         }));
                     });
                     const results = await Promise.all(writes);
