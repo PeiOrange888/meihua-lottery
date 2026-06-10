@@ -204,12 +204,44 @@
         }
 
         .matched {
-            animation: cinnabarPulse 2s ease-in-out infinite;
+            background: radial-gradient(circle at 35% 28%, #fff7c7 0%, #f0cf76 38%, #b77a20 100%);
+            color: #2b1a08;
+            border: 1px solid rgba(255, 244, 188, 0.95);
+            box-shadow:
+                inset 0 1px 3px rgba(255, 255, 255, 0.7),
+                inset 0 -2px 5px rgba(75, 38, 0, 0.35),
+                0 0 0 2px rgba(194, 58, 43, 0.65),
+                0 4px 12px rgba(150, 92, 18, 0.35);
+            overflow: hidden;
         }
 
-        @keyframes cinnabarPulse {
-            0%, 100% { box-shadow: 0 0 5px rgba(194, 58, 43, 0.5); }
-            50% { box-shadow: 0 0 15px rgba(194, 58, 43, 0.8); }
+        .matched::before {
+            content: "";
+            position: absolute;
+            inset: -45%;
+            background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.72) 50%, transparent 65%);
+            transform: translateX(-80%) rotate(18deg);
+            animation: prizeSheen 3.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .matched::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid rgba(180, 124, 36, 0.65);
+            box-shadow: 0 0 0 1px rgba(255, 238, 166, 0.45);
+            pointer-events: none;
+        }
+
+        @keyframes prizeSheen {
+            0%, 55% { transform: translateX(-80%) rotate(18deg); }
+            85%, 100% { transform: translateX(80%) rotate(18deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .matched::before { animation: none; opacity: 0.35; }
         }
 
         /* ===== 气运卡片 ===== */
