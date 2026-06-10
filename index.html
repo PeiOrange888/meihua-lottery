@@ -673,9 +673,9 @@
             dirtyTypes: new Set(),
 
             normalizeRecords(value) {
-                if (Array.isArray(value)) return value.filter(Boolean);
-                if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
-                return [];
+                const records = Array.isArray(value) ? value.filter(Boolean) :
+                    value && typeof value === 'object' ? Object.values(value).filter(Boolean) : [];
+                return records.sort((a, b) => (a.time || a.timestamp || 0) - (b.time || b.timestamp || 0));
             },
 
             normalizeHistory(value) {
