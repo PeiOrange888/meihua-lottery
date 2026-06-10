@@ -1,0 +1,29 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "lottery": {
+      ".read": true,
+      ".write": false,
+      "qigua_count": {
+        ".write": "newData.isNumber() && newData.val() >= 0"
+      },
+      "schema_version": {
+        ".write": "newData.isNumber()"
+      },
+      "updated_at": {
+        ".write": "newData.isNumber()"
+      },
+      "ssq": {
+        ".write": "newData.hasChildren(['period', 'records', 'history'])"
+      },
+      "dlt": {
+        ".write": "newData.hasChildren(['period', 'records', 'history'])"
+      },
+      "$other": {
+        ".read": false,
+        ".write": false
+      }
+    }
+  }
+}

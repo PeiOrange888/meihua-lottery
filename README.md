@@ -142,6 +142,8 @@
 
 保存时只更新变化的分支，避免每次操作覆盖整个数据根节点。预测记录和历史记录写入时会转换为稳定 key 的对象格式，读取时兼容旧的数组格式。
 
+Firebase Realtime Database Rules 参考 `firebase-database.rules.json`。静态网页无法完全隐藏写权限，安全边界和发布步骤见 `SECURITY.md`。
+
 ## 更新日志
 
 ### v2.1.0 (2026-06-10)
@@ -213,6 +215,8 @@ meihua-lottery/
 │       └── app.js      # 应用启动和事件绑定
 ├── README.md           # 项目文档
 ├── DEPLOY.md           # 部署指南
+├── SECURITY.md         # Firebase 安全说明
+├── firebase-database.rules.json # Realtime Database 规则参考
 └── screenshots/        # 效果图
     ├── 1-4.png         # 功能截图
     └── 5-7.png         # 预测记录截图

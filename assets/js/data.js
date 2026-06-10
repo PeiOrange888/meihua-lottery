@@ -123,18 +123,21 @@ const Store = {
     async save() {
         if (!this.dirtyMeta && this.dirtyTypes.size === 0) return;
         try {
-            const writes = [];
-            if (this.dirtyMeta) {
-                writes.push(fetch(CONFIG.FIREBASE_URL, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const writes = [];
+                if (this.dirtyMeta) {
+                    const meta = {
                         schema_version: CONFIG.DATA_VERSION,
                         updated_at: Date.now(),
                         qigua_count: this.data.qiguaCount
-                    })
-                }));
-            }
+                    };
+                    Object.entries(meta).forEach(([key, value]) => {
+                        writes.push(fetch(CONFIG.FIREBASE_URL.replace('.json', `/${key}.json`), {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(value)
+                        }));
+                    });
+                }
             this.dirtyTypes.forEach(type => {
                 writes.push(fetch(CONFIG.FIREBASE_URL.replace('.json', `/${type}.json`), {
                     method: 'PUT',
