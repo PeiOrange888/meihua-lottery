@@ -14,7 +14,12 @@
 ### 步骤 2：上传文件
 
 1. 在新仓库页面，点击 **uploading an existing file**
-2. 将 `index.html` 和 `README.md` 拖拽到上传区域
+2. 将整个项目文件拖拽到上传区域，至少包括：
+   - `index.html`
+   - `assets/css/styles.css`
+   - `assets/js/*.js`
+   - `README.md`
+   - `DEPLOY.md`
 3. 点击 **Commit changes**
 
 ### 步骤 3：启用 GitHub Pages
@@ -79,7 +84,11 @@ git push -u origin main
 
 ### Q: GitHub Pages 部署后样式丢失？
 
-A: 确保所有资源使用相对路径或 CDN 链接。本项目已优化，无此问题。
+A: 确认 `assets/css/styles.css` 已经上传，并且仓库保留了 `assets/` 目录结构。本项目使用相对路径加载 CSS 和 JS。
+
+### Q: 页面可以打开，但按钮没有反应？
+
+A: 确认 `assets/js/` 下的脚本文件都已上传。当前页面按顺序加载 `config.js`、`data.js`、`logic.js`、`ui.js`、`app.js`。
 
 ### Q: 访问时显示 404？
 
