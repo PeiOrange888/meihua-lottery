@@ -47,3 +47,15 @@ For stronger integrity, move settlement and writes to a trusted backend:
 
 In that model, GitHub Pages remains the front end, and the backend performs
 settlement and database writes.
+
+## Scheduled Settlement
+
+This repository includes `.github/workflows/settle-lottery.yml`, which runs
+`scripts/settle-lottery.mjs` every 30 minutes and can also be triggered manually
+from the GitHub Actions tab.
+
+The scheduled job reduces reliance on visitor browsers for settlement, but it
+does not by itself make writes fully private because the current Firebase rules
+still allow public browser writes for the static site. To make settlement fully
+trusted, move write access behind an authenticated backend or Firebase Admin SDK
+workflow and tighten browser write rules further.
