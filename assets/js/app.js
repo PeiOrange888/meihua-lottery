@@ -12,7 +12,6 @@ const App = {
         UI.setCount(Store.data.qiguaCount);
         const user = User.get();
         document.getElementById('user-nickname').textContent = `当前身份：${user.nickname}`;
-        await Core.checkPeriod('ssq'); await Core.checkPeriod('dlt');
         UI.setPeriod('ssq', Store.data.ssq.period||'--');
         UI.setPeriod('dlt', Store.data.dlt.period||'--');
         UI.renderRecords('ssq'); UI.renderRecords('dlt');
@@ -21,16 +20,17 @@ const App = {
     },
 
     async _updateLottery(type) {
-        await Core.checkPeriod(type);
-        const previousResultPeriod = Store.data[type].result?.period;
-        const result = Store.data[type].result || await Api.getResult(type);
+        const [period, result] = await Promise.all([
+            Api.getPeriod(type),
+            Api.getResult(type)
+        ]);
+        if (period) Store.data[type].period = period;
         UI.setPeriod(type, Store.data[type].period || '--');
         if (result) {
             Store.data[type].result = result;
-            if (previousResultPeriod !== result.period) Store.scheduleSave(type);
             UI.renderLotteryResult(type);
-            UI.renderRecords(type);
         }
+        UI.renderRecords(type);
     },
 
     async doQiGua(type) {
