@@ -217,10 +217,6 @@ const Core = {
     },
 
     genLottery(g) {
-        const coeff = { '体生用':0.7, '体克用':1.3, '用生体':1.1, '用克体':0.9, '比和':1.0 };
-        const bias = { '体生用':-2, '体克用':3, '用生体':2, '用克体':-3, '比和':0 };
-        const c = coeff[g.rel.type]||1.0;
-        const b = bias[g.rel.type]||0;
         const entry = (label, raw, max, formula) => ({ label, raw: Math.round(raw), max, value: this.guiCang(raw, max), formula });
         const unique = (entries, max) => {
             const used = new Set();
@@ -238,27 +234,27 @@ const Core = {
                 return { ...item, value, original, adjusted: value !== original };
             });
         };
-        const tiYongRaw = Math.round((g.ti * 8 + g.yong + g.dong + g.dz + g.huXu) * c + b);
-        const relationRaw = Math.round((g.bianXu + g.huXu + g.ti * g.yong + b * g.dong) * c);
+        const tiYongRaw = g.ti * 8 + g.yong + g.dong + g.dz + g.huXu;
+        const structureRaw = g.bianXu + g.huXu + g.ti * g.yong + g.dong + g.yearBranch;
         const redTrace = unique([
             entry('本卦序', g.benXu, 33, `${g.benGua.name}第${g.benXu}卦`),
             entry('变卦序', g.bianXu, 33, `${g.bianGua.name}第${g.bianXu}卦`),
             entry('互卦序', g.huXu, 33, `${g.huGua.name}第${g.huXu}卦`),
-            entry('体用数', tiYongRaw, 33, `(${g.ti}×8+${g.yong}+动爻${g.dong}+时辰${g.dz}+互卦${g.huXu})×${c}+${b}`),
+            entry('体用数', tiYongRaw, 33, `${g.ti}×8+${g.yong}+动爻${g.dong}+时辰${g.dz}+互卦${g.huXu}`),
             entry('上下卦组合', g.shang * 10 + g.xia + g.lunarDay, 33, `${g.shang}×10+${g.xia}+农历日${g.lunarDay}`),
-            entry('生克调整', relationRaw, 33, `(变卦${g.bianXu}+互卦${g.huXu}+体用${g.ti}×${g.yong}+${b}×动爻${g.dong})×${c}`)
+            entry('卦序合参', structureRaw, 33, `变卦${g.bianXu}+互卦${g.huXu}+体用${g.ti}×${g.yong}+动爻${g.dong}+年支${g.yearBranch}`)
         ], 33);
-        const blueTrace = entry('蓝球', g.dong + g.dz + g.ti + g.yong + b, 16, `动爻${g.dong}+时辰${g.dz}+体${g.ti}+用${g.yong}+${b}`);
+        const blueTrace = entry('蓝球', g.dong + g.dz + g.ti + g.yong + g.lunarMonth, 16, `动爻${g.dong}+时辰${g.dz}+体${g.ti}+用${g.yong}+农历月${g.lunarMonth}`);
         const frontTrace = unique([
             entry('本卦序', g.benXu, 35, `${g.benGua.name}第${g.benXu}卦`),
             entry('变卦序', g.bianXu, 35, `${g.bianGua.name}第${g.bianXu}卦`),
             entry('互卦序', g.huXu, 35, `${g.huGua.name}第${g.huXu}卦`),
             entry('体用数', tiYongRaw + g.lunarMonth, 35, `体用数${tiYongRaw}+农历月${g.lunarMonth}`),
-            entry('动爻时辰', Math.round((g.dong * g.dz + g.hShang * g.hXia + b) * c), 35, `(动爻${g.dong}×时辰${g.dz}+互卦${g.hShang}×${g.hXia}+${b})×${c}`)
+            entry('动爻时辰', g.dong * g.dz + g.hShang * g.hXia + g.yearBranch, 35, `动爻${g.dong}×时辰${g.dz}+互卦${g.hShang}×${g.hXia}+年支${g.yearBranch}`)
         ], 35);
         const backTrace = unique([
-            entry('互上动爻', g.hShang + g.dong + b, 12, `互卦上${g.hShang}+动爻${g.dong}+${b}`),
-            entry('互下时辰', g.hXia + g.dz + g.ti + b, 12, `互卦下${g.hXia}+时辰${g.dz}+体${g.ti}+${b}`)
+            entry('互上动爻', g.hShang + g.dong + g.lunarMonth, 12, `互卦上${g.hShang}+动爻${g.dong}+农历月${g.lunarMonth}`),
+            entry('互下时辰', g.hXia + g.dz + g.ti + g.yearBranch, 12, `互卦下${g.hXia}+时辰${g.dz}+体${g.ti}+年支${g.yearBranch}`)
         ], 12);
         return {
             red: redTrace.map(item => item.value).sort((a,b) => a-b),
@@ -267,21 +263,91 @@ const Core = {
             back: backTrace.map(item => item.value).sort((a,b) => a-b),
             trace: {
                 ssq: { red: redTrace, blue: blueTrace },
-                dlt: { front: frontTrace, back: backTrace },
-                relationCoeff: c,
-                relationBias: b
+                dlt: { front: frontTrace, back: backTrace }
             }
         };
     },
 
-    calcQiYun(g) {
-        let score = 50; const r = g.rel.type;
-        if (r === '用生体') score += 30; else if (r === '体克用') score += 15; else if (r === '比和') score += 10;
-        else if (r === '体生用') score -= 15; else if (r === '用克体') score -= 30;
+    seasonElement(month) {
+        if ([3, 6, 9, 12].includes(month)) return '土';
+        if (month >= 1 && month <= 2) return '木';
+        if (month >= 4 && month <= 5) return '火';
+        if (month >= 7 && month <= 8) return '金';
+        return '水';
+    },
+
+    relationReading(type) {
+        const map = {
+            '用生体': { score: 28, text: '用生体，外事来生我，为得助之象' },
+            '比和': { score: 18, text: '体用比和，彼此同气，卦势平稳' },
+            '体克用': { score: 12, text: '体克用，我能制事，可为但需用力' },
+            '体生用': { score: -12, text: '体生用，我去生事，主付出与泄气' },
+            '用克体': { score: -28, text: '用克体，事来克我，阻力较重' }
+        };
+        return map[type] || { score: 0, text: '体用未明，取中平论' };
+    },
+
+    seasonReading(tiElement, seasonElement) {
+        if (tiElement === seasonElement) return { score: 16, text: `体卦属${tiElement}，得${seasonElement}令，体气较旺` };
+        if (SHENG[seasonElement] === tiElement) return { score: 8, text: `时令${seasonElement}生体${tiElement}，有助力` };
+        if (SHENG[tiElement] === seasonElement) return { score: -6, text: `体${tiElement}生时令${seasonElement}，气有所泄` };
+        if (KE[seasonElement] === tiElement) return { score: -16, text: `时令${seasonElement}克体${tiElement}，体气受制` };
+        if (KE[tiElement] === seasonElement) return { score: 6, text: `体${tiElement}克时令${seasonElement}，可制其势但不宜躁进` };
+        return { score: 0, text: `体卦${tiElement}与时令${seasonElement}关系平平` };
+    },
+
+    movingYaoReading(dong) {
+        const map = {
+            1: { score: 0, text: '初爻动，事在初萌，宜先观察' },
+            2: { score: 6, text: '二爻动，居中得位，进退较稳' },
+            3: { score: -4, text: '三爻动，多临转折，易有反复' },
+            4: { score: 4, text: '四爻动，事近外应，可顺势而动' },
+            5: { score: 8, text: '五爻动，居尊位，卦势较明' },
+            6: { score: -6, text: '上爻动，物极将变，宜收敛' }
+        };
+        return map[dong] || { score: 0, text: '动爻不明，取平论' };
+    },
+
+    calcGuaReading(g) {
+        const tiElement = WUXING[g.ti];
+        const yongElement = WUXING[g.yong];
         const month = g.lunarMonth || this.lunarParts(new Date()).lunarMonth;
-        const season = month>=1&&month<=3?'木':month>=4&&month<=6?'火':month>=7&&month<=9?'金':'水';
-        if (WUXING[g.ti] === season) score += 10;
-        return Math.max(0, Math.min(100, score));
+        const season = this.seasonElement(month);
+        const relation = this.relationReading(g.rel.type);
+        const seasonal = this.seasonReading(tiElement, season);
+        const moving = this.movingYaoReading(g.dong);
+        const score = Math.max(0, Math.min(100, 50 + relation.score + seasonal.score + moving.score));
+        const level = QIYUN_LEVELS.find(item => score >= item.min) || QIYUN_LEVELS[QIYUN_LEVELS.length - 1];
+        return {
+            score,
+            level,
+            gua: {
+                ben: g.benGua.name,
+                bian: g.bianGua.name,
+                hu: g.huGua.name,
+                dong: g.dong
+            },
+            ti: {
+                name: BAGUA[g.ti].name,
+                element: tiElement
+            },
+            yong: {
+                name: BAGUA[g.yong].name,
+                element: yongElement
+            },
+            relation: g.rel.desc,
+            season: {
+                month,
+                element: season
+            },
+            factors: [relation.text, seasonal.text, moving.text],
+            summary: `${g.benGua.name}之${g.bianGua.name}，互见${g.huGua.name}`,
+            advice: level.advice
+        };
+    },
+
+    calcQiYun(g) {
+        return this.calcGuaReading(g).score;
     },
 
     matchSSQ(rec, res) {

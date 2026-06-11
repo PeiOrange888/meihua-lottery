@@ -75,11 +75,11 @@ const GUA_BY_YAO = Object.fromEntries(WEN_WANG_64.map(gua => [gua.yao.join(''), 
 const GUA_64 = Object.fromEntries(WEN_WANG_64.map(gua => [gua.seq, gua]));
 
 const QIYUN_LEVELS = [
-    { min:80, name:'大吉', color:'daji', desc:'今日气运旺盛，诸事顺遂', advice:'可适度增加投注，但仍需保持理性' },
-    { min:60, name:'吉', color:'ji', desc:'今日气运平顺，小有收获', advice:'气运不错，可以正常投注' },
-    { min:40, name:'平', color:'ping', desc:'今日气运一般，宜谨慎', advice:'请谨慎投注，量力而行' },
-    { min:20, name:'小凶', color:'xiaoxiong', desc:'今日气运欠佳，宜静不宜动', advice:'建议减少投注金额或暂停' },
-    { min:0, name:'大凶', color:'daxiong', desc:'今日气运低迷，诸事不宜', advice:'建议今日不购彩' }
+    { min:80, name:'大吉', color:'daji', desc:'卦势明朗，体用相扶', advice:'可作娱乐参考，仍以小额理性为宜' },
+    { min:60, name:'吉', color:'ji', desc:'卦势平顺，略有助力', advice:'宜顺势而行，不宜执着加码' },
+    { min:40, name:'平', color:'ping', desc:'卦势中和，成败未定', advice:'宜观其变化，保持平常心' },
+    { min:20, name:'小凶', color:'xiaoxiong', desc:'卦势受制，反复较多', advice:'宜谨慎观望，少动为佳' },
+    { min:0, name:'大凶', color:'daxiong', desc:'卦势低迷，体受克泄', advice:'宜止不宜进，仅作娱乐参考' }
 ];
 
 // ============================================

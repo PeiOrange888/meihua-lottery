@@ -301,10 +301,74 @@ body::before {
 .qiyun-card {
     padding: 1.1rem;
     margin-top: 0.75rem;
-    text-align: center;
+    text-align: left;
     border-radius: var(--radius);
     background: var(--surface-muted);
     border: 1px solid var(--border-ink);
+}
+
+.qiyun-title,
+.qiyun-score {
+    text-align: center;
+    font-weight: 700;
+}
+
+.qiyun-title {
+    font-size: 1.5rem;
+}
+
+.qiyun-score {
+    font-size: 1.2rem;
+    margin-top: 0.25rem;
+}
+
+.qiyun-card > p {
+    text-align: center;
+}
+
+.qiyun-detail {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(32, 28, 22, 0.12);
+}
+
+.qiyun-summary {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.qiyun-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    justify-content: center;
+    margin-top: 0.75rem;
+}
+
+.qiyun-meta span {
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.56);
+    border: 1px solid rgba(32, 28, 22, 0.08);
+    font-size: 0.82rem;
+}
+
+.qiyun-factors {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    color: var(--text-primary);
+}
+
+.qiyun-factors p {
+    padding-left: 0.75rem;
+    border-left: 3px solid rgba(187, 53, 40, 0.28);
+}
+
+.qiyun-advice {
+    margin-top: 0.85rem;
+    font-size: 0.875rem;
+    opacity: 0.86;
 }
 
 .qiyun-daji {

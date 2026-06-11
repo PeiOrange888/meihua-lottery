@@ -58,12 +58,12 @@ const App = {
     },
 
     doQiYun() {
-        const key = `qiyun_${new Date().toISOString().slice(0,10)}`;
+        const key = `qiyun_v2_${new Date().toISOString().slice(0,10)}`;
         const cached = localStorage.getItem(key);
         if (cached) { UI.renderQiYun(JSON.parse(cached)); return; }
-        const g = Core.calcGua(); const score = Core.calcQiYun(g);
-        localStorage.setItem(key, JSON.stringify(score));
-        UI.renderQiYun(score);
+        const g = Core.calcGua(); const reading = Core.calcGuaReading(g);
+        localStorage.setItem(key, JSON.stringify(reading));
+        UI.renderQiYun(reading);
     }
 };
 

@@ -210,13 +210,28 @@ const UI = {
         } else { el.innerHTML = '开奖结果：待更新'; }
     },
 
-    renderQiYun(score) {
-        const level = QIYUN_LEVELS.find(l => score >= l.min) || QIYUN_LEVELS[4];
+    renderQiYun(reading) {
+        const score = typeof reading === 'number' ? reading : reading.score;
+        const level = typeof reading === 'number'
+            ? QIYUN_LEVELS.find(l => score >= l.min) || QIYUN_LEVELS[4]
+            : reading.level;
+        const detail = typeof reading === 'number' ? '' : `<div class="qiyun-detail">
+            <p class="qiyun-summary">${reading.summary}</p>
+            <div class="qiyun-meta">
+                <span>体：${reading.ti.name}${reading.ti.element}</span>
+                <span>用：${reading.yong.name}${reading.yong.element}</span>
+                <span>时令：农历${reading.season.month}月属${reading.season.element}</span>
+            </div>
+            <div class="qiyun-factors">
+                ${reading.factors.map(item => `<p>${item}</p>`).join('')}
+            </div>
+        </div>`;
         this.$('qiyun-display').innerHTML = `<div class="qiyun-card qiyun-${level.color}">
-            <div style="font-size:1.5rem;font-weight:700">${level.name}</div>
-            <div style="font-size:1.25rem;font-weight:700;margin-top:0.25rem">${score}分</div>
+            <div class="qiyun-title">${level.name}</div>
+            <div class="qiyun-score">${score}分</div>
             <p style="margin-top:0.5rem">${level.desc}</p>
-            <p style="font-size:0.875rem;margin-top:0.25rem;opacity:0.8">${level.advice}</p></div>`;
+            ${detail}
+            <p class="qiyun-advice">${reading.advice || level.advice}</p></div>`;
     },
 
     setTime(g) { this.$('time-display').textContent = `${g.y}年${g.m}月${g.d}日 ${g.h}时${g.min}分${g.s}秒`; },

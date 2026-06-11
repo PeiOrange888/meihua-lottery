@@ -63,12 +63,16 @@ for (let i = 0; i < 72; i++) {
   const gua = Core.calcGua(date);
   const first = Core.genLottery(gua);
   const second = Core.genLottery(gua);
+  const reading = Core.calcGuaReading(gua);
 
   assert(JSON.stringify(first) === JSON.stringify(second), 'Lottery generation must be deterministic');
+  assert(!('relationCoeff' in first.trace) && !('relationBias' in first.trace), 'Lottery trace must not depend on qi yun coefficients');
   assert(first.red.length === 6 && unique(first.red) && inRange(first.red, 1, 33), 'SSQ red balls invalid');
   assert(inRange([first.blue], 1, 16), 'SSQ blue ball invalid');
   assert(first.front.length === 5 && unique(first.front) && inRange(first.front, 1, 35), 'DLT front balls invalid');
   assert(first.back.length === 2 && unique(first.back) && inRange(first.back, 1, 12), 'DLT back balls invalid');
+  assert(Number.isInteger(reading.score) && reading.score >= 0 && reading.score <= 100, 'Gua reading score invalid');
+  assert(reading.level && reading.summary && reading.factors.length === 3, 'Gua reading structure invalid');
 }
 
 console.log('Core algorithm tests passed.');

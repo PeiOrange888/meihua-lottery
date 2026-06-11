@@ -6,6 +6,7 @@ const OUTPUT_DIR = path.resolve('tmp/visual-check');
 const TARGET = './index.html';
 
 const WAIT = "then(()=>new Promise(resolve=>setTimeout(resolve,800)))";
+const QIYUN_SCRIPT = `Promise.resolve().then(()=>document.querySelector("#btn-qiyun").click()).${WAIT}.then(()=>true)`;
 const SSQ_DETAIL_SCRIPT = `Promise.resolve().then(()=>document.querySelector("#btn-ssq").click()).${WAIT}.then(()=>document.querySelector("#ssq-detail").previousElementSibling.click()).then(()=>true)`;
 const DLT_DETAIL_SCRIPT = `Promise.resolve().then(()=>document.querySelector("#btn-dlt").click()).${WAIT}.then(()=>document.querySelector("#dlt-detail").previousElementSibling.click()).then(()=>true)`;
 const EXPANDED_LISTS_SCRIPT = `Promise.resolve().${WAIT}.then(()=>document.querySelectorAll("[data-list-toggle]").forEach(button=>button.click())).then(()=>true)`;
@@ -14,6 +15,10 @@ const CASES = [
   {
     name: 'desktop-home',
     args: ['screenshot', TARGET, path.join(OUTPUT_DIR, 'desktop-home.png'), '--width', '1200', '--height', '900', '--wait', '1200']
+  },
+  {
+    name: 'desktop-qiyun',
+    args: ['scriptshot', TARGET, QIYUN_SCRIPT, path.join(OUTPUT_DIR, 'desktop-qiyun.png'), '--width', '1200', '--height', '900', '--wait', '1200', '--wait-after', '700']
   },
   {
     name: 'desktop-ssq',
