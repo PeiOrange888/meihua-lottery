@@ -2,6 +2,14 @@
 // ============================================
 const UI = {
     historyRange: 'all',
+    expanded: {
+        history: { ssq: false, dlt: false },
+        settled: { ssq: false, dlt: false }
+    },
+    limits: {
+        history: { groups: 2, records: 3 },
+        settled: { groups: 3, records: 4 }
+    },
 
     $(id) { return document.getElementById(id); },
 
@@ -23,6 +31,25 @@ const UI = {
 
     traceList(items) {
         return (items || []).map(item => this.traceLine(item)).join('');
+    },
+
+    compactGroups(groups, mode, type) {
+        const expanded = this.expanded[mode][type];
+        const limits = this.limits[mode];
+        const totalGroups = groups.length;
+        const totalRecords = groups.reduce((sum, group) => sum + (group.records || []).length, 0);
+        const visibleGroups = expanded ? groups : groups.slice(0, limits.groups).map(group => ({
+            ...group,
+            records: (group.records || []).slice(0, limits.records)
+        }));
+        const visibleRecords = visibleGroups.reduce((sum, group) => sum + (group.records || []).length, 0);
+        return { expanded, visibleGroups, totalGroups, totalRecords, hiddenRecords: Math.max(0, totalRecords - visibleRecords) };
+    },
+
+    renderExpandControl(mode, type, compact) {
+        if (compact.totalGroups <= this.limits[mode].groups && compact.hiddenRecords === 0) return '';
+        const label = compact.expanded ? '收起' : `展开全部${compact.hiddenRecords ? `（还有 ${compact.hiddenRecords} 条）` : ''}`;
+        return `<button class="list-toggle text-sm" data-list-toggle="${mode}" data-list-type="${type}">${label}</button>`;
     },
 
     renderResult(type, g, l) {
@@ -81,7 +108,8 @@ const UI = {
         }
         
         const user = User.get();
-        el.innerHTML = winningHistory.map(h => {
+        const compact = this.compactGroups(winningHistory, 'history', type);
+        const groupsHtml = compact.visibleGroups.map(h => {
             const resRed = Array.isArray(h.result?.red) ? h.result.red : Array.isArray(h.result?.redBalls) ? h.result.redBalls : [];
             const resBlue = Array.isArray(h.result?.blue) ? h.result.blue : Array.isArray(h.result?.blueBalls) ? h.result.blueBalls : [];
             const resultHtml = h.result ? `<p class="text-sm mb-4 text-secondary">开奖：${resRed.join(',')} + ${resBlue.join(',')} (${h.result.date})</p>` : '';
@@ -101,12 +129,13 @@ const UI = {
                     ${prize ? `<span class="prize-badge prize-${prize.level}">${prize.name}${matchDetail}</span>` : '<span class="text-secondary">-</span>'}
                 </div>`;
             }).join('');
-            return `<div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-ink)">
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-                    <span style="font-weight:600">第 ${h.period} 期</span>
+            return `<div class="history-group">
+                <div class="history-head">
+                    <span class="history-period">第 ${h.period} 期</span>
                     <span class="text-sm text-secondary">${h.result?'已开奖':'未开奖'}</span>
                 </div>${resultHtml}<div>${recordsHtml}</div></div>`;
         }).join('');
+        el.innerHTML = `${groupsHtml}${this.renderExpandControl('history', type, compact)}`;
     },
 
     renderSettlements(type) {
@@ -119,7 +148,8 @@ const UI = {
         }
 
         const user = User.get();
-        el.innerHTML = settledHistory.map(h => {
+        const compact = this.compactGroups(settledHistory, 'settled', type);
+        const groupsHtml = compact.visibleGroups.map(h => {
             const resRed = Array.isArray(h.result?.red) ? h.result.red : Array.isArray(h.result?.redBalls) ? h.result.redBalls : [];
             const resBlue = Array.isArray(h.result?.blue) ? h.result.blue : Array.isArray(h.result?.blueBalls) ? h.result.blueBalls : [];
             const recordsHtml = h.records.map(r => {
@@ -140,16 +170,21 @@ const UI = {
                     ${badge}
                 </div>`;
             }).join('');
-            return `<div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-ink)">
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-                    <span style="font-weight:600">第 ${h.period} 期</span>
+            return `<div class="history-group">
+                <div class="history-head">
+                    <span class="history-period">第 ${h.period} 期</span>
                     <span class="text-sm text-secondary">开奖：${resRed.join(',')} + ${resBlue.join(',')}</span>
                 </div><div>${recordsHtml}</div></div>`;
         }).join('');
+        el.innerHTML = `${groupsHtml}${this.renderExpandControl('settled', type, compact)}`;
     },
 
     setHistoryRange(range) {
         this.historyRange = range;
+        this.expanded.history.ssq = false;
+        this.expanded.history.dlt = false;
+        this.expanded.settled.ssq = false;
+        this.expanded.settled.dlt = false;
         document.querySelectorAll('[data-history-range]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.historyRange === range);
         });
@@ -157,6 +192,12 @@ const UI = {
         this.renderHistory('dlt');
         this.renderSettlements('ssq');
         this.renderSettlements('dlt');
+    },
+
+    toggleList(mode, type) {
+        this.expanded[mode][type] = !this.expanded[mode][type];
+        if (mode === 'history') this.renderHistory(type);
+        else this.renderSettlements(type);
     },
 
     renderLotteryResult(type) {

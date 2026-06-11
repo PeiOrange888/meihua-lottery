@@ -73,6 +73,11 @@ document.getElementById('btn-qiyun').addEventListener('click', () => App.doQiYun
 document.querySelectorAll('[data-history-range]').forEach(btn => {
     btn.addEventListener('click', () => UI.setHistoryRange(btn.dataset.historyRange));
 });
+document.addEventListener('click', event => {
+    const btn = event.target.closest('[data-list-toggle]');
+    if (!btn) return;
+    UI.toggleList(btn.dataset.listToggle, btn.dataset.listType);
+});
 document.addEventListener('DOMContentLoaded', () => App.init());
 
 window.App = App; window.UI = UI;
