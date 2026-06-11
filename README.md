@@ -239,6 +239,16 @@ node scripts/export-data.mjs
 node scripts/test-core.mjs
 ```
 
+### 视觉检查
+
+生成桌面首页、起卦后页面和移动端首页截图：
+
+```bash
+node scripts/visual-check.mjs
+```
+
+截图输出到 `tmp/visual-check/`，该目录不会提交到 GitHub。脚本依赖全局 `codex-browser` 命令和本机 Chrome。
+
 ### 在线访问
 
 [GitHub Pages 在线演示](https://peiorange888.github.io/meihua-lottery/)
@@ -266,7 +276,8 @@ meihua-lottery/
 ├── scripts/
 │   ├── settle-lottery.mjs # GitHub Actions 定时结算脚本
 │   ├── export-data.mjs    # 导出 Firebase 数据到本地
-│   └── test-core.mjs      # 核心算法测试
+│   ├── test-core.mjs      # 核心算法测试
+│   └── visual-check.mjs   # 本地 UI 截图检查
 ├── .github/
 │   └── workflows/
 │       └── settle-lottery.yml # 每 30 分钟结算待开奖记录
