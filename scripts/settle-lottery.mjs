@@ -156,6 +156,32 @@ function matchDLT(rec, res) {
   return { mRed, mBlue, prize };
 }
 
+function matchRecord(type, record, result) {
+  return type === 'ssq' ? matchSSQ(record, result) : matchDLT(record, result);
+}
+
+function sameMatch(a, b) {
+  return (a?.mRed || 0) === (b?.mRed || 0)
+    && (a?.mBlue || 0) === (b?.mBlue || 0)
+    && (a?.prize?.level || null) === (b?.prize?.level || null)
+    && (a?.prize?.name || null) === (b?.prize?.name || null);
+}
+
+function refreshHistoryMatches(branch, type) {
+  let refreshed = 0;
+  branch.history = branch.history.map(group => ({
+    ...group,
+    records: (group.records || []).map(record => {
+      const match = matchRecord(type, record, group.result);
+      if (!match) return record;
+      const current = record.match || record.matchResult;
+      if (!sameMatch(current, match)) refreshed++;
+      return { ...record, match };
+    })
+  }));
+  return refreshed;
+}
+
 function mergeHistory(branch, group) {
   const existing = branch.history.find(h => h.period === group.period);
   if (existing) {
@@ -203,6 +229,7 @@ async function settleType(db, type) {
   Object.values(groups).forEach(group => mergeHistory(branch, group));
   const settled = Object.values(groups).reduce((sum, group) => sum + group.records.length, 0);
   branch.records = pending;
+  const refreshed = refreshHistoryMatches(branch, type);
 
   if (!DRY_RUN) {
     await fetchJson(FIREBASE_URL.replace('.json', `/${type}.json`), {
@@ -212,7 +239,7 @@ async function settleType(db, type) {
     });
   }
 
-  return { type, settled, pending: pending.length, changed: settled > 0 };
+  return { type, settled, refreshed, pending: pending.length, changed: settled > 0 || refreshed > 0 };
 }
 
 async function main() {

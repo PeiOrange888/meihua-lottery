@@ -184,6 +184,16 @@ const Core = {
         return {mRed,mBlue,prize};
     },
 
+    matchRecord(type, record, result) {
+        if (!result) return record.match || record.matchResult || null;
+        return type === 'ssq' ? this.matchSSQ(record, result) : this.matchDLT(record, result);
+    },
+
+    withFreshMatch(type, record, result) {
+        const match = this.matchRecord(type, record, result);
+        return match ? { ...record, match } : record;
+    },
+
     comparePeriod(a, b) {
         const na = Number(String(a || '').replace(/\D/g, ''));
         const nb = Number(String(b || '').replace(/\D/g, ''));
@@ -266,14 +276,18 @@ const Core = {
     winningGroups(type, range) {
         return (Store.data[type].history || []).map(group => ({
             ...group,
-            records: (group.records || []).filter(record => this.isWinner(record) && this.inRange(record, range))
+            records: (group.records || [])
+                .map(record => this.withFreshMatch(type, record, group.result))
+                .filter(record => this.isWinner(record) && this.inRange(record, range))
         })).filter(group => group.records.length > 0);
     },
 
     settledGroups(type, range) {
         return (Store.data[type].history || []).map(group => ({
             ...group,
-            records: (group.records || []).filter(record => (record.match || record.matchResult) && this.inRange(record, range))
+            records: (group.records || [])
+                .map(record => this.withFreshMatch(type, record, group.result))
+                .filter(record => (record.match || record.matchResult) && this.inRange(record, range))
         })).filter(group => group.records.length > 0);
     }
 };
