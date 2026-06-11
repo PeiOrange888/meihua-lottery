@@ -191,8 +191,8 @@ const UI = {
     toggleDetail(type) {
         const el = this.$(`${type}-detail`);
         const btn = el.previousElementSibling;
-        if (el.classList.contains('hidden')) { el.classList.remove('hidden'); btn.textContent = '[ 收起推导 ]'; }
-        else { el.classList.add('hidden'); btn.textContent = '[ 查看详细推导 ]'; }
+        if (el.classList.contains('hidden')) { el.classList.remove('hidden'); btn.textContent = '收起推导'; }
+        else { el.classList.add('hidden'); btn.textContent = '查看详细推导'; }
     },
 
     getOp(rel) {

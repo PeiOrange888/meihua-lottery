@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>梅花易数 · 彩票预测</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=2.2.0">
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.2.1">
 </head>
 <body>
     <div class="container">
@@ -13,7 +13,7 @@
         <header class="header">
             <h1>梅花易数</h1>
             <p class="subtitle">以易道观天机，以数理测运势</p>
-            <p id="user-nickname" class="text-sm" style="color:var(--accent-cinnabar);margin-top:0.5rem"></p>
+            <p id="user-nickname" class="text-sm"></p>
         </header>
 
         <!-- 气运测试 -->
@@ -53,7 +53,7 @@
                     </div>
                     <div class="detail-box">
                         <div id="ssq-info" class="text-sm"></div>
-                        <button class="text-sm mt-4 text-secondary" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="UI.toggleDetail('ssq')">[ 查看详细推导 ]</button>
+                        <button class="detail-toggle text-sm" onclick="UI.toggleDetail('ssq')">查看详细推导</button>
                         <div id="ssq-detail" class="hidden mt-4 text-sm text-secondary"></div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                     </div>
                     <div class="detail-box">
                         <div id="dlt-info" class="text-sm"></div>
-                        <button class="text-sm mt-4 text-secondary" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="UI.toggleDetail('dlt')">[ 查看详细推导 ]</button>
+                        <button class="detail-toggle text-sm" onclick="UI.toggleDetail('dlt')">查看详细推导</button>
                         <div id="dlt-detail" class="hidden mt-4 text-sm text-secondary"></div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
         <section class="mb-8">
             <!-- 双色球记录 -->
             <div class="gua-border mb-8">
-                <div class="flex-center" style="justify-content:space-between">
+                <div class="section-head">
                     <h3 class="section-title mb-0">福彩预测记录</h3>
                     <div class="flex-center gap-4">
                         <span id="ssq-period" class="text-sm text-secondary">期号：--</span>
@@ -98,7 +98,7 @@
 
             <!-- 大乐透记录 -->
             <div class="gua-border mb-8">
-                <div class="flex-center" style="justify-content:space-between">
+                <div class="section-head">
                     <h3 class="section-title mb-0">体彩预测记录</h3>
                     <div class="flex-center gap-4">
                         <span id="dlt-period" class="text-sm text-secondary">期号：--</span>
@@ -115,7 +115,7 @@
 
         <!-- 历史记录 -->
         <section class="gua-border mb-8">
-            <h3 class="section-title text-center" style="border-left:none;text-align:center">历史中奖</h3>
+            <h3 class="section-title text-center">历史中奖</h3>
             <div class="filter-bar">
                 <button class="filter-btn active" data-history-range="all">全部</button>
                 <button class="filter-btn" data-history-range="7">近7天</button>
@@ -140,7 +140,7 @@
 
         <!-- 结算明细 -->
         <section class="gua-border mb-8">
-            <h3 class="section-title text-center" style="border-left:none;text-align:center">结算明细</h3>
+            <h3 class="section-title text-center">结算明细</h3>
             <div class="grid-2">
                 <div>
                     <p class="text-sm text-secondary mb-4">福彩双色球</p>
@@ -158,9 +158,9 @@
         </section>
 
         <!-- 底部 -->
-        <footer class="text-center text-sm text-secondary mt-8" style="padding:2rem 0;border-top:1px solid var(--border-ink)">
+        <footer class="text-center text-sm text-secondary mt-8">
             <p>卦以载道，数以明理。彩票开奖乃随机之事，此工具仅供娱乐。</p>
-            <div class="mt-4 flex-center gap-4 text-sm">
+            <div class="footer-stats mt-4 text-sm">
                 <span>访问 <span id="busuanzi_value_site_pv">0</span> 次</span>
                 <span>访客 <span id="busuanzi_value_site_uv">0</span> 人</span>
                 <span>起卦 <span id="qigua-count">0</span> 次</span>
@@ -170,10 +170,10 @@
 
     <div id="toast" class="toast"></div>
 
-    <script src="assets/js/config.js?v=2.2.0"></script>
-    <script src="assets/js/data.js?v=2.2.0"></script>
-    <script src="assets/js/logic.js?v=2.2.0"></script>
-    <script src="assets/js/ui.js?v=2.2.0"></script>
-    <script src="assets/js/app.js?v=2.2.0"></script>
+    <script src="assets/js/config.js?v=2.2.1"></script>
+    <script src="assets/js/data.js?v=2.2.1"></script>
+    <script src="assets/js/logic.js?v=2.2.1"></script>
+    <script src="assets/js/ui.js?v=2.2.1"></script>
+    <script src="assets/js/app.js?v=2.2.1"></script>
 </body>
 </html>
