@@ -322,6 +322,7 @@ body::before {
 .prize-6 { background: #8a8a8a; color: white; }
 .prize-7 { background: #9a9a9a; color: var(--bg-ink); }
 .prize-8 { background: #aaaaaa; color: var(--bg-ink); }
+.prize-9 { background: #bbbbbb; color: var(--bg-ink); }
 .prize-none { background: transparent; color: #aaa; font-weight: 400; }
 
 .filter-bar {
