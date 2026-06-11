@@ -5,6 +5,11 @@ import { spawn } from 'node:child_process';
 const OUTPUT_DIR = path.resolve('tmp/visual-check');
 const TARGET = './index.html';
 
+const WAIT = "then(()=>new Promise(resolve=>setTimeout(resolve,800)))";
+const SSQ_DETAIL_SCRIPT = `Promise.resolve().then(()=>document.querySelector("#btn-ssq").click()).${WAIT}.then(()=>document.querySelector("#ssq-detail").previousElementSibling.click()).then(()=>true)`;
+const DLT_DETAIL_SCRIPT = `Promise.resolve().then(()=>document.querySelector("#btn-dlt").click()).${WAIT}.then(()=>document.querySelector("#dlt-detail").previousElementSibling.click()).then(()=>true)`;
+const EXPANDED_LISTS_SCRIPT = `Promise.resolve().${WAIT}.then(()=>document.querySelectorAll("[data-list-toggle]").forEach(button=>button.click())).then(()=>true)`;
+
 const CASES = [
   {
     name: 'desktop-home',
@@ -21,6 +26,18 @@ const CASES = [
   {
     name: 'mobile-home',
     args: ['screenshot', TARGET, path.join(OUTPUT_DIR, 'mobile-home.png'), '--width', '390', '--height', '900', '--wait', '1200']
+  },
+  {
+    name: 'desktop-ssq-detail',
+    args: ['scriptshot', TARGET, SSQ_DETAIL_SCRIPT, path.join(OUTPUT_DIR, 'desktop-ssq-detail.png'), '--width', '1200', '--height', '1100', '--wait', '1200', '--wait-after', '700']
+  },
+  {
+    name: 'desktop-dlt-detail',
+    args: ['scriptshot', TARGET, DLT_DETAIL_SCRIPT, path.join(OUTPUT_DIR, 'desktop-dlt-detail.png'), '--width', '1200', '--height', '1100', '--wait', '1200', '--wait-after', '700']
+  },
+  {
+    name: 'desktop-expanded-lists',
+    args: ['scriptshot', TARGET, EXPANDED_LISTS_SCRIPT, path.join(OUTPUT_DIR, 'desktop-expanded-lists.png'), '--width', '1200', '--height', '1100', '--wait', '1500', '--wait-after', '700']
   }
 ];
 
