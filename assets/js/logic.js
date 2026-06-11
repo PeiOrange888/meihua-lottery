@@ -177,10 +177,10 @@ const Core = {
         else if (mRed===5) prize={level:3,name:'三等奖'};
         else if (mRed===4&&mBlue===2) prize={level:4,name:'四等奖'};
         else if (mRed===4&&mBlue===1) prize={level:5,name:'五等奖'};
-        else if (mRed===4||(mRed===3&&mBlue===2)) prize={level:6,name:'六等奖'};
-        else if ((mRed===3&&mBlue===1)||(mRed===2&&mBlue===2)) prize={level:7,name:'七等奖'};
-        else if (mRed===3||(mRed===1&&mBlue===2)||(mRed===2&&mBlue===1)) prize={level:8,name:'八等奖'};
-        else if (mBlue===2||(mRed===1&&mBlue===1)||mRed===2) prize={level:9,name:'九等奖'};
+        else if (mRed===3&&mBlue===2) prize={level:6,name:'六等奖'};
+        else if (mRed===4) prize={level:7,name:'七等奖'};
+        else if ((mRed===3&&mBlue===1)||(mRed===2&&mBlue===2)) prize={level:8,name:'八等奖'};
+        else if ((mRed===3&&mBlue===0)||(mRed===1&&mBlue===2)||(mRed===2&&mBlue===1)||(mRed===0&&mBlue===2)) prize={level:9,name:'九等奖'};
         return {mRed,mBlue,prize};
     },
 
