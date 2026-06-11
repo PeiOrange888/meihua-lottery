@@ -14,17 +14,30 @@ const UI = {
         }).join('');
     },
 
+    traceLine(item) {
+        if (!item) return '';
+        const base = item.original ?? item.value;
+        const adjusted = item.adjusted ? `，去重调整为 ${item.value}` : '';
+        return `<p>${item.label}：${item.formula} → 归藏${item.max} = ${base}${adjusted}</p>`;
+    },
+
+    traceList(items) {
+        return (items || []).map(item => this.traceLine(item)).join('');
+    },
+
     renderResult(type, g, l) {
+        const dateLabel = g.isFallback ? '兜底日期' : '农历';
+        const guaInfo = `<p><strong>起卦：</strong>北京时间 ${g.y}年${g.m}月${g.d}日 ${g.h}时，${dateLabel}${g.lunarText}，年支数${g.yearBranch}，时辰数${g.dz}</p><p><strong>本卦：</strong>${g.benGua.name}（第${g.benXu}卦，${BAGUA[g.shang].name}上${BAGUA[g.xia].name}下）</p><p><strong>变卦：</strong>${g.bianGua.name}（第${g.bianXu}卦）</p><p><strong>互卦：</strong>${g.huGua.name}（第${g.huXu}卦）</p><p><strong>动爻：</strong>第${g.dong}爻</p><p><strong>体用：</strong>${g.rel.desc}</p>`;
         if (type === 'ssq') {
             this.$('ssq-red').innerHTML = this.balls(l.red, 'red');
             this.$('ssq-blue').innerHTML = this.balls([l.blue], 'blue');
-            this.$('ssq-info').innerHTML = `<p><strong>本卦：</strong>${g.benGua.name}（第${g.benXu}卦）</p><p><strong>变卦：</strong>${g.bianGua.name}（第${g.bianXu}卦）</p><p><strong>动爻：</strong>第${g.dong}爻</p><p><strong>体用：</strong>${g.rel.desc}</p>`;
-            this.$('ssq-detail').innerHTML = `<div class="space-y-2"><p><strong>【双色球推导】</strong></p><p>① 主卦卦序：${g.benXu} → 归藏：${Core.guiCang(g.benXu,33)}</p><p>② 变卦卦序：${g.bianXu} → 归藏：${Core.guiCang(g.bianXu,33)}</p><p>③ 体用${g.rel.type}：(${g.ti} ${this.getOp(g.rel.type)} ${g.yong}) + ${g.dong} → 蓝球</p><p>④ 互卦上卦：${g.hShang} → 归藏：${Core.guiCang(g.hShang,33)}</p><p>⑤ 互卦下卦：${g.hXia} → 归藏：${Core.guiCang(g.hXia,33)}</p><p class="mt-4"><strong>最终：</strong>红球 ${l.red.join(', ')} + 蓝球 ${l.blue}</p></div>`;
+            this.$('ssq-info').innerHTML = guaInfo;
+            this.$('ssq-detail').innerHTML = `<div class="space-y-2"><p><strong>【双色球推导】</strong></p>${this.traceList(l.trace?.ssq?.red)}${this.traceLine(l.trace?.ssq?.blue)}<p class="mt-4"><strong>最终：</strong>红球 ${l.red.join(', ')} + 蓝球 ${l.blue}</p></div>`;
         } else {
             this.$('dlt-front').innerHTML = this.balls(l.front, 'red');
             this.$('dlt-back').innerHTML = this.balls(l.back, 'blue');
-            this.$('dlt-info').innerHTML = `<p><strong>本卦：</strong>${g.benGua.name}（第${g.benXu}卦）</p><p><strong>变卦：</strong>${g.bianGua.name}（第${g.bianXu}卦）</p><p><strong>动爻：</strong>第${g.dong}爻</p><p><strong>体用：</strong>${g.rel.desc}</p>`;
-            this.$('dlt-detail').innerHTML = `<div class="space-y-2"><p><strong>【大乐透推导】</strong></p><p>① 主卦卦序：${g.benXu} → 归藏：${Core.guiCang(g.benXu,35)}</p><p>② 变卦卦序：${g.bianXu} → 归藏：${Core.guiCang(g.bianXu,35)}</p><p>③ 体用${g.rel.type}：(${g.ti} ${this.getOp(g.rel.type)} ${g.yong}) + ${g.dong}</p><p>④ 动爻×时辰：${g.dong} × ${g.dz} = ${g.dong*g.dz}</p><p>⑤ 时辰+动爻：${g.dz} + ${g.dong} = ${g.dz+g.dong}</p><p class="mt-4"><strong>最终：</strong>前区 ${l.front.join(', ')} + 后区 ${l.back.join(', ')}</p></div>`;
+            this.$('dlt-info').innerHTML = guaInfo;
+            this.$('dlt-detail').innerHTML = `<div class="space-y-2"><p><strong>【大乐透推导】</strong></p>${this.traceList(l.trace?.dlt?.front)}${this.traceList(l.trace?.dlt?.back)}<p class="mt-4"><strong>最终：</strong>前区 ${l.front.join(', ')} + 后区 ${l.back.join(', ')}</p></div>`;
         }
     },
 

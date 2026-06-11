@@ -63,7 +63,106 @@ const Api = {
 // 核心逻辑
 // ============================================
 const Core = {
-    guiCang(n, max) { const r = Math.round(n) % max; return r === 0 ? max : r; },
+    guiCang(n, max) {
+        const value = Math.round(Number(n) || 0);
+        const r = ((value % max) + max) % max;
+        return r === 0 ? max : r;
+    },
+
+    parseChineseNumber(text) {
+        const source = String(text || '').replace(/[年月日\s]/g, '').replace(/^闰/, '').replace(/^初/, '');
+        if (/^\d+$/.test(source)) return Number(source);
+        const digits = { '零':0, '〇':0, '一':1, '二':2, '两':2, '三':3, '四':4, '五':5, '六':6, '七':7, '八':8, '九':9 };
+        if (source === '正') return 1;
+        if (source === '冬') return 11;
+        if (source === '腊') return 12;
+        if (source === '十') return 10;
+        if (source.startsWith('廿')) return 20 + (digits[source.slice(1)] || 0);
+        if (source.startsWith('卅')) return 30 + (digits[source.slice(1)] || 0);
+        const tenIndex = source.indexOf('十');
+        if (tenIndex >= 0) {
+            const left = source.slice(0, tenIndex);
+            const right = source.slice(tenIndex + 1);
+            return (left ? digits[left] : 1) * 10 + (right ? digits[right] : 0);
+        }
+        return digits[source] || 0;
+    },
+
+    beijingParts(date = new Date()) {
+        const fmt = new Intl.DateTimeFormat('zh-CN', {
+            timeZone: 'Asia/Shanghai',
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: false
+        });
+        const parts = Object.fromEntries(fmt.formatToParts(date).filter(p => p.type !== 'literal').map(p => [p.type, Number(p.value)]));
+        return {
+            y: parts.year,
+            m: parts.month,
+            d: parts.day,
+            h: parts.hour === 24 ? 0 : parts.hour,
+            min: parts.minute,
+            s: parts.second
+        };
+    },
+
+    lunarParts(date = new Date()) {
+        try {
+            const fmt = new Intl.DateTimeFormat('zh-CN-u-ca-chinese', {
+                timeZone: 'Asia/Shanghai',
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
+            const parts = Object.fromEntries(fmt.formatToParts(date).filter(p => p.type !== 'literal').map(p => [p.type, p.value]));
+            const monthText = parts.month || '';
+            const lunarYear = Number(parts.relatedYear || parts.year);
+            const lunarMonth = this.parseChineseNumber(monthText);
+            const lunarDay = this.parseChineseNumber(parts.day);
+            if (!lunarYear || !lunarMonth || !lunarDay) throw new Error('Invalid lunar date');
+            return {
+                lunarYear,
+                lunarMonth,
+                lunarDay,
+                isLeapMonth: monthText.startsWith('闰'),
+                lunarText: `${lunarYear}年${monthText}${parts.day}`
+            };
+        } catch(e) {
+            const p = this.beijingParts(date);
+            return {
+                lunarYear: p.y,
+                lunarMonth: p.m,
+                lunarDay: p.d,
+                isLeapMonth: false,
+                isFallback: true,
+                lunarText: `公历${p.y}年${p.m}月${p.d}日`
+            };
+        }
+    },
+
+    yearBranch(lunarYear) {
+        return this.guiCang(Number(lunarYear) - 2020 + 1, 12);
+    },
+
+    hourBranch(hour) {
+        return Math.floor(((hour + 1) % 24) / 2) + 1;
+    },
+
+    trigramNum(yao) {
+        return TRI_TO_NUM[yao.join('')] || 1;
+    },
+
+    getGua(upper, lower) {
+        return GUA_BY_TRIGRAMS[`${upper}-${lower}`] || GUA_64[1];
+    },
+
+    getGuaByYao(yao) {
+        return GUA_BY_YAO[yao.join('')] || this.getGua(this.trigramNum(yao.slice(3,6)), this.trigramNum(yao.slice(0,3)));
+    },
 
     getRelation(ti, yong) {
         const tw = WUXING[ti], yw = WUXING[yong];
@@ -74,73 +173,113 @@ const Core = {
         return { type: '比和', desc: `体${tw}比用${yw}` };
     },
 
-    calcGua() {
-        const now = new Date();
-        const y = now.getFullYear(), m = now.getMonth()+1, d = now.getDate();
-        const h = now.getHours(), min = now.getMinutes(), s = now.getSeconds();
-        const sum1 = y+m+d, sum2 = y+m+d+h+min+s;
+    calcGua(date = new Date()) {
+        const gregorian = this.beijingParts(date);
+        const lunar = this.lunarParts(date);
+        const yearBranch = this.yearBranch(lunar.lunarYear);
+        const hourBranch = this.hourBranch(gregorian.h);
+        const sum1 = yearBranch + lunar.lunarMonth + lunar.lunarDay;
+        const sum2 = sum1 + hourBranch;
         const shang = this.guiCang(sum1, 8), xia = this.guiCang(sum2, 8);
-        const dong = this.guiCang(sum2, 6), dz = this.guiCang(h*3600+min*60+s, 12);
-        const benXu = (shang-1)*8+xia, benGua = GUA_64[benXu]||GUA_64[1];
+        const dong = this.guiCang(sum2, 6), dz = hourBranch;
+        const benGua = this.getGua(shang, xia), benXu = benGua.seq;
         let ti, yong;
         if (dong <= 3) { ti = shang; yong = xia; } else { ti = xia; yong = shang; }
         const rel = this.getRelation(ti, yong);
         const yao = [...benGua.yao]; yao[dong-1] = yao[dong-1] === 1 ? 0 : 1;
-        const bShang = yao.slice(0,3), bXia = yao.slice(3,6);
-        const bShangNum = TRI_TO_NUM[bShang.join('')]||1, bXiaNum = TRI_TO_NUM[bXia.join('')]||1;
-        const bianXu = (bShangNum-1)*8+bXiaNum, bianGua = GUA_64[bianXu]||GUA_64[1];
-        const hShang = TRI_TO_NUM[benGua.yao.slice(2,5).join('')]||1, hXia = TRI_TO_NUM[benGua.yao.slice(1,4).join('')]||1;
-        const huXu = (hShang-1)*8+hXia, huGua = GUA_64[huXu]||GUA_64[1];
-        return { y,m,d,h,min,s, shang,xia,dong,dz, benXu,benGua,ti,yong,rel, bianXu,bianGua, hShang,hXia,huXu,huGua };
+        const bianGua = this.getGuaByYao(yao), bianXu = bianGua.seq;
+        const hXia = this.trigramNum(benGua.yao.slice(1,4));
+        const hShang = this.trigramNum(benGua.yao.slice(2,5));
+        const huGua = this.getGua(hShang, hXia), huXu = huGua.seq;
+        return {
+            ...gregorian,
+            ...lunar,
+            yearBranch,
+            hourBranch,
+            shang,
+            xia,
+            dong,
+            dz,
+            sum1,
+            sum2,
+            benXu,
+            benGua,
+            ti,
+            yong,
+            rel,
+            bianXu,
+            bianGua,
+            hShang,
+            hXia,
+            huXu,
+            huGua
+        };
     },
 
     genLottery(g) {
         const coeff = { '体生用':0.7, '体克用':1.3, '用生体':1.1, '用克体':0.9, '比和':1.0 };
+        const bias = { '体生用':-2, '体克用':3, '用生体':2, '用克体':-3, '比和':0 };
         const c = coeff[g.rel.type]||1.0;
-        const calc = (base, max) => {
-            let r;
-            if (g.rel.type === '比和') r = Math.round((g.ti*g.yong+base)*c);
-            else if (g.rel.type === '体生用' || g.rel.type === '用生体') r = Math.round((g.ti+g.yong+base)*c);
-            else r = Math.round((Math.abs(g.ti-g.yong)+base)*c);
-            return this.guiCang(r, max);
-        };
-        const adjust = (arr, max) => {
-            const result = [];
-            for (let v of arr) {
+        const b = bias[g.rel.type]||0;
+        const entry = (label, raw, max, formula) => ({ label, raw: Math.round(raw), max, value: this.guiCang(raw, max), formula });
+        const unique = (entries, max) => {
+            const used = new Set();
+            return entries.map((item, index) => {
+                let value = item.value;
+                let step = this.guiCang(item.raw + g.benXu + g.bianXu + g.huXu + g.dong + index + 1, max - 1);
                 let attempts = 0;
-                while (result.includes(v) && attempts < max) {
-                    const step = Math.floor(Math.random()*11)+5;
-                    v += Math.random()>0.5 ? step : -step;
-                    while (v > max) v -= max; while (v < 1) v += max; attempts++;
+                const original = value;
+                while (used.has(value) && attempts < max) {
+                    value = this.guiCang(value + step, max);
+                    step = this.guiCang(step + g.dong + index + 1, max - 1);
+                    attempts++;
                 }
-                result.push(v);
-            }
-            for (let i = 1; i < result.length; i++) {
-                if (Math.abs(result[i]-result[i-1]) <= 2) {
-                    for (let j = 0; j < result.length; j++) {
-                        if (j !== i && Math.abs(result[j]-result[i-1]) > 3 && Math.abs(result[j]-result[i]) > 3) {
-                            [result[i],result[j]] = [result[j],result[i]]; break;
-                        }
-                    }
-                }
-            }
-            return result.sort((a,b) => a-b);
+                used.add(value);
+                return { ...item, value, original, adjusted: value !== original };
+            });
         };
-        const redCand = [this.guiCang(g.benXu,33), this.guiCang(g.bianXu,33), calc(g.dong,33), this.guiCang(g.hShang*g.hXia,33), this.guiCang(g.shang*10+g.xia,33), this.guiCang(g.bianXu*c,33)];
-        const red = adjust(redCand,33).slice(0,6), blue = calc(g.dong+g.dz,16);
-        const frontCand = [this.guiCang(g.benXu,35), this.guiCang(g.bianXu,35), calc(g.dong,35), this.guiCang(g.hShang*g.hXia+g.dz,35), this.guiCang(g.dong*g.dz*c,35)];
-        const front = adjust(frontCand,35).slice(0,5);
-        let backA = this.guiCang(g.hShang+g.dong,12), backB = this.guiCang(g.hXia+g.dz,12);
-        if (backA === backB) { backB++; if (backB > 12) backB = 1; }
-        return { red, blue, front, back: [backA,backB].sort((a,b)=>a-b) };
+        const tiYongRaw = Math.round((g.ti * 8 + g.yong + g.dong + g.dz + g.huXu) * c + b);
+        const relationRaw = Math.round((g.bianXu + g.huXu + g.ti * g.yong + b * g.dong) * c);
+        const redTrace = unique([
+            entry('本卦序', g.benXu, 33, `${g.benGua.name}第${g.benXu}卦`),
+            entry('变卦序', g.bianXu, 33, `${g.bianGua.name}第${g.bianXu}卦`),
+            entry('互卦序', g.huXu, 33, `${g.huGua.name}第${g.huXu}卦`),
+            entry('体用数', tiYongRaw, 33, `(${g.ti}×8+${g.yong}+动爻${g.dong}+时辰${g.dz}+互卦${g.huXu})×${c}+${b}`),
+            entry('上下卦组合', g.shang * 10 + g.xia + g.lunarDay, 33, `${g.shang}×10+${g.xia}+农历日${g.lunarDay}`),
+            entry('生克调整', relationRaw, 33, `(变卦${g.bianXu}+互卦${g.huXu}+体用${g.ti}×${g.yong}+${b}×动爻${g.dong})×${c}`)
+        ], 33);
+        const blueTrace = entry('蓝球', g.dong + g.dz + g.ti + g.yong + b, 16, `动爻${g.dong}+时辰${g.dz}+体${g.ti}+用${g.yong}+${b}`);
+        const frontTrace = unique([
+            entry('本卦序', g.benXu, 35, `${g.benGua.name}第${g.benXu}卦`),
+            entry('变卦序', g.bianXu, 35, `${g.bianGua.name}第${g.bianXu}卦`),
+            entry('互卦序', g.huXu, 35, `${g.huGua.name}第${g.huXu}卦`),
+            entry('体用数', tiYongRaw + g.lunarMonth, 35, `体用数${tiYongRaw}+农历月${g.lunarMonth}`),
+            entry('动爻时辰', Math.round((g.dong * g.dz + g.hShang * g.hXia + b) * c), 35, `(动爻${g.dong}×时辰${g.dz}+互卦${g.hShang}×${g.hXia}+${b})×${c}`)
+        ], 35);
+        const backTrace = unique([
+            entry('互上动爻', g.hShang + g.dong + b, 12, `互卦上${g.hShang}+动爻${g.dong}+${b}`),
+            entry('互下时辰', g.hXia + g.dz + g.ti + b, 12, `互卦下${g.hXia}+时辰${g.dz}+体${g.ti}+${b}`)
+        ], 12);
+        return {
+            red: redTrace.map(item => item.value).sort((a,b) => a-b),
+            blue: blueTrace.value,
+            front: frontTrace.map(item => item.value).sort((a,b) => a-b),
+            back: backTrace.map(item => item.value).sort((a,b) => a-b),
+            trace: {
+                ssq: { red: redTrace, blue: blueTrace },
+                dlt: { front: frontTrace, back: backTrace },
+                relationCoeff: c,
+                relationBias: b
+            }
+        };
     },
 
     calcQiYun(g) {
         let score = 50; const r = g.rel.type;
         if (r === '用生体') score += 30; else if (r === '体克用') score += 15; else if (r === '比和') score += 10;
         else if (r === '体生用') score -= 15; else if (r === '用克体') score -= 30;
-        const month = new Date().getMonth()+1;
-        const season = month>=3&&month<=5?'木':month>=6&&month<=8?'火':month>=9&&month<=11?'金':'水';
+        const month = g.lunarMonth || this.lunarParts(new Date()).lunarMonth;
+        const season = month>=1&&month<=3?'木':month>=4&&month<=6?'火':month>=7&&month<=9?'金':'水';
         if (WUXING[g.ti] === season) score += 10;
         return Math.max(0, Math.min(100, score));
     },
