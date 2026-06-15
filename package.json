@@ -1,0 +1,24 @@
+{
+  "name": "meihua-lottery",
+  "version": "1.0.0",
+  "description": "> 以易道观天机，以数理测运势",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeiOrange888/meihua-lottery.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/PeiOrange888/meihua-lottery/issues"
+  },
+  "homepage": "https://github.com/PeiOrange888/meihua-lottery#readme",
+  "dependencies": {
+    "firebase-admin": "^14.0.0"
+  }
+}
