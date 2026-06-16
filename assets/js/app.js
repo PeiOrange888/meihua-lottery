@@ -37,8 +37,25 @@ const App = {
         const btnId = type === 'ssq' ? 'btn-ssq' : 'btn-dlt';
         UI.setLoading(btnId, true);
         try {
+            // 检查当前时辰是否已有预测
+            const now = new Date();
+            const cached = this._checkShichenCache(type, now);
+            if (cached) {
+                // 显示缓存的结果
+                UI.setTime(cached.gua);
+                UI.$('result-section').classList.remove('hidden');
+                UI.renderResult(type, cached.gua, cached.lottery);
+                UI.renderRecords(type);
+                UI.showToast('本时辰已起卦，卦象相同');
+                return;
+            }
+
             const count = Store.incCount(); UI.setCount(count);
             const g = Core.calcGua(); const l = Core.genLottery(g);
+
+            // 缓存本时辰的预测结果
+            this._saveShichenCache(type, now, g, l);
+
             UI.setTime(g);
             UI.$('result-section').classList.remove('hidden');
             UI.renderResult(type, g, l);
@@ -55,6 +72,65 @@ const App = {
             Store.addRecord(type, record);
             UI.renderRecords(type);
         } finally { UI.setLoading(btnId, false); }
+    },
+
+    _getShichenKey(date) {
+        const p = Core.beijingParts(date);
+        const lunar = Core.lunarParts(date);
+        const hourBranch = Core.hourBranch(p.h);
+        return `${lunar.lunarYear}_${lunar.lunarMonth}_${lunar.lunarDay}_${hourBranch}`;
+    },
+
+    _checkShichenCache(type, date) {
+        const key = `shichen_${type}_${this._getShichenKey(date)}`;
+        try {
+            const cached = localStorage.getItem(key);
+            if (cached) {
+                const data = JSON.parse(cached);
+                // 验证缓存是否在同一时辰内
+                const cachedKey = this._getShichenKey(new Date(data.timestamp));
+                const currentKey = this._getShichenKey(date);
+                if (cachedKey === currentKey) {
+                    return { gua: data.gua, lottery: data.lottery };
+                }
+            }
+        } catch(e) {}
+        return null;
+    },
+
+    _saveShichenCache(type, date, gua, lottery) {
+        const key = `shichen_${type}_${this._getShichenKey(date)}`;
+        try {
+            const data = {
+                timestamp: date.getTime(),
+                gua: gua,
+                lottery: lottery
+            };
+            localStorage.setItem(key, JSON.stringify(data));
+            // 清理旧的缓存（保留最近3天）
+            this._cleanOldCache(type);
+        } catch(e) {}
+    },
+
+    _cleanOldCache(type) {
+        try {
+            const now = Date.now();
+            const threeDays = 3 * 24 * 60 * 60 * 1000;
+            const prefix = `shichen_${type}_`;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(prefix)) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data && data.timestamp && now - data.timestamp > threeDays) {
+                            keysToRemove.push(key);
+                        }
+                    } catch(e) {}
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+        } catch(e) {}
     },
 
     doQiYun() {

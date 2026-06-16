@@ -255,6 +255,16 @@ const UI = {
         if (rel === '比和') return '×';
         if (rel === '体生用' || rel === '用生体') return '+';
         return '-';
+    },
+
+    showToast(message, duration = 2000) {
+        const toast = this.$('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
     }
 };
 
