@@ -2,6 +2,7 @@ import admin from 'firebase-admin';
 import { getDatabase } from 'firebase-admin/database';
 
 const LOTTERY_API = 'https://api.huiniao.top/interface/home/lotteryHistory';
+const FIREBASE_URL = 'https://meihua-abb40-default-rtdb.firebaseio.com/lottery.json';
 const DATA_VERSION = 2;
 const MAX_HISTORY = 120;
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -26,7 +27,7 @@ if (serviceAccount) {
   });
 }
 
-const db = getDatabase();
+const db = serviceAccount ? getDatabase() : null;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -188,18 +189,20 @@ function sameMatch(a, b) {
     && (a?.prize?.name || null) === (b?.prize?.name || null);
 }
 
-function refreshHistoryMatches(branch, type) {
+function refreshHistory(branch, type, resultsByPeriod) {
   let refreshed = 0;
-  branch.history = branch.history.map(group => ({
-    ...group,
-    records: (group.records || []).map(record => {
-      const match = matchRecord(type, record, group.result);
+  branch.history = branch.history.map(group => {
+    const result = resultsByPeriod[group.period] || group.result;
+    if (result?.period && result.period !== group.result?.period) refreshed++;
+    const records = (group.records || []).map(record => {
+      const match = matchRecord(type, record, result);
       if (!match) return record;
       const current = record.match || record.matchResult;
       if (!sameMatch(current, match)) refreshed++;
       return { ...record, match };
-    })
-  }));
+    });
+    return { ...group, result, records };
+  });
   return refreshed;
 }
 
@@ -250,7 +253,7 @@ async function settleType(dbSnapshot, type) {
   Object.values(groups).forEach(group => mergeHistory(branch, group));
   const settled = Object.values(groups).reduce((sum, group) => sum + group.records.length, 0);
   branch.records = pending;
-  const refreshed = refreshHistoryMatches(branch, type);
+  const refreshed = refreshHistory(branch, type, resultsByPeriod);
 
   if (!DRY_RUN) {
     const ref = db.ref(`lottery/${type}`);
@@ -262,8 +265,9 @@ async function settleType(dbSnapshot, type) {
 
 async function main() {
   // 读取当前数据
-  const snapshot = await db.ref('lottery').once('value');
-  const dbData = snapshot.val() || {};
+  const dbData = db
+    ? (await db.ref('lottery').once('value')).val() || {}
+    : await fetchJson(FIREBASE_URL);
 
   const results = [];
   for (const type of TYPES) {

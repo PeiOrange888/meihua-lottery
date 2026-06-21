@@ -394,6 +394,13 @@ const Core = {
         return type === 'ssq' ? this.matchSSQ(record, result) : this.matchDLT(record, result);
     },
 
+    sameMatch(a, b) {
+        return (a?.mRed || 0) === (b?.mRed || 0)
+            && (a?.mBlue || 0) === (b?.mBlue || 0)
+            && (a?.prize?.level || null) === (b?.prize?.level || null)
+            && (a?.prize?.name || null) === (b?.prize?.name || null);
+    },
+
     withFreshMatch(type, record, result) {
         const match = this.matchRecord(type, record, result);
         return match ? { ...record, match } : record;
@@ -421,6 +428,24 @@ const Core = {
         if (data.history.length > CONFIG.MAX_HISTORY) data.history.length = CONFIG.MAX_HISTORY;
     },
 
+    refreshHistory(type, data, resultsByPeriod) {
+        let changed = 0;
+        data.history = (data.history || []).map(group => {
+            const result = resultsByPeriod[group.period] || group.result;
+            const resultChanged = result?.period && result.period !== group.result?.period;
+            const records = (group.records || []).map(record => {
+                const match = this.matchRecord(type, record, result);
+                if (!match) return record;
+                const current = record.match || record.matchResult;
+                if (!this.sameMatch(current, match)) changed++;
+                return { ...record, match };
+            });
+            if (resultChanged) changed++;
+            return { ...group, result, records };
+        });
+        return changed;
+    },
+
     async checkPeriod(type) {
         const latest = await Api.getLatest(type);
         if (!latest) return;
@@ -442,6 +467,7 @@ const Core = {
         const results = await Api.getResults(type, 40);
         const resultsByPeriod = {};
         results.forEach(result => { resultsByPeriod[result.period] = result; });
+        const refreshedCount = this.refreshHistory(type, data, resultsByPeriod);
 
         const pending = [];
         const groups = {};
@@ -463,7 +489,7 @@ const Core = {
         const settledCount = Object.values(groups).reduce((sum, group) => sum + group.records.length, 0);
         data.records = pending;
         if (!data.records.length) data.period = nextPeriod || data.period;
-        if (periodChanged || resultChanged || settledCount > 0) Store.scheduleSave(type);
+        if (periodChanged || resultChanged || settledCount > 0 || refreshedCount > 0) Store.scheduleSave(type);
     },
 
     isWinner(record) {

@@ -167,18 +167,20 @@ function sameMatch(a, b) {
     && (a?.prize?.name || null) === (b?.prize?.name || null);
 }
 
-function refreshHistoryMatches(branch, type) {
+function refreshHistory(branch, type, resultsByPeriod) {
   let refreshed = 0;
-  branch.history = branch.history.map(group => ({
-    ...group,
-    records: (group.records || []).map(record => {
-      const match = matchRecord(type, record, group.result);
+  branch.history = branch.history.map(group => {
+    const result = resultsByPeriod[group.period] || group.result;
+    if (result?.period && result.period !== group.result?.period) refreshed++;
+    const records = (group.records || []).map(record => {
+      const match = matchRecord(type, record, result);
       if (!match) return record;
       const current = record.match || record.matchResult;
       if (!sameMatch(current, match)) refreshed++;
       return { ...record, match };
-    })
-  }));
+    });
+    return { ...group, result, records };
+  });
   return refreshed;
 }
 
@@ -229,7 +231,7 @@ async function settleType(db, type) {
   Object.values(groups).forEach(group => mergeHistory(branch, group));
   const settled = Object.values(groups).reduce((sum, group) => sum + group.records.length, 0);
   branch.records = pending;
-  const refreshed = refreshHistoryMatches(branch, type);
+  const refreshed = refreshHistory(branch, type, resultsByPeriod);
 
   if (!DRY_RUN) {
     await fetchJson(FIREBASE_URL.replace('.json', `/${type}.json`), {

@@ -17,9 +17,9 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(`${configSource}\n${logicSource}\nglobalThis.__coreTest = { Core, BAGUA, WEN_WANG_64, GUA_BY_TRIGRAMS, GUA_BY_YAO, GUA_64 };`, context);
+vm.runInContext(`${configSource}\n${logicSource}\nglobalThis.__coreTest = { Api, Core, BAGUA, WEN_WANG_64, GUA_BY_TRIGRAMS, GUA_BY_YAO, GUA_64 };`, context);
 
-const { Core, BAGUA, WEN_WANG_64, GUA_BY_TRIGRAMS, GUA_BY_YAO, GUA_64 } = context.__coreTest;
+const { Api, Core, BAGUA, WEN_WANG_64, GUA_BY_TRIGRAMS, GUA_BY_YAO, GUA_64 } = context.__coreTest;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -52,6 +52,21 @@ assert(GUA_BY_TRIGRAMS['8-8'].name === '坤为地', 'Known gua 8/8 mismatch');
 assert(GUA_BY_TRIGRAMS['6-4'].name === '水雷屯', 'Known gua 6/4 mismatch');
 assert(GUA_BY_TRIGRAMS['3-6'].name === '火水未济', 'Known gua 3/6 mismatch');
 
+assert(Core.matchSSQ(
+  { red: [1, 2, 3, 4, 5, 6], blue: [7] },
+  { red: [8, 9, 10, 11, 12, 13], blue: [7] }
+).prize.name === '六等奖', 'SSQ blue-only match must be sixth prize');
+
+assert(Core.matchDLT(
+  { red: [1, 2, 3, 4, 5], blue: [1, 2] },
+  { red: [1, 8, 9, 10, 11], blue: [1, 12] }
+).prize === null, 'DLT 1+1 must not be a prize');
+
+assert(Core.matchDLT(
+  { red: [1, 2, 3, 4, 5], blue: [1, 2] },
+  { red: [1, 2, 3, 10, 11], blue: [1, 2] }
+).prize.name === '六等奖', 'DLT 3+2 must be sixth prize');
+
 const fixed = Core.calcGua(new Date('2026-06-11T12:34:56+08:00'));
 assert(fixed.lunarText === '2026年四月26', 'Fixed date lunar conversion mismatch');
 assert(fixed.benGua.name === '风雷益', 'Fixed date ben gua mismatch');
@@ -74,5 +89,43 @@ for (let i = 0; i < 72; i++) {
   assert(Number.isInteger(reading.score) && reading.score >= 0 && reading.score <= 100, 'Gua reading score invalid');
   assert(reading.level && reading.summary && reading.factors.length === 3, 'Gua reading structure invalid');
 }
+
+context.Store.data.dlt = {
+  period: '26069',
+  result: { period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' },
+  records: [
+    { id: 'pending-26067', period: '26067', status: 'pending', red: [1, 2, 3, 4, 5], blue: [1, 2], time: 1 },
+    { id: 'pending-26069', period: '26069', status: 'pending', red: [6, 7, 8, 9, 10], blue: [5, 6], time: 2 }
+  ],
+  history: [
+    {
+      period: '26066',
+      result: { period: '26065', red: [31, 32, 33, 34, 35], blue: [11, 12], date: 'wrong' },
+      records: [
+        { id: 'old-26066', period: '26066', status: 'settled', red: [1, 2, 3, 4, 5], blue: [1, 2], time: 3, match: { mRed: 0, mBlue: 0, prize: null } }
+      ]
+    }
+  ]
+};
+context.Store.scheduleSave = type => { context.Store.lastSavedType = type; };
+
+Api.getLatest = async () => ({ period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' });
+Api.getPeriod = async () => '26069';
+Api.getResults = async () => [
+  { period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' },
+  { period: '26067', nextPeriod: '26068', red: [1, 2, 3, 10, 11], blue: [1, 2], date: '2026-06-18' },
+  { period: '26066', nextPeriod: '26067', red: [1, 2, 10, 11, 12], blue: [1, 9], date: '2026-06-16' }
+];
+
+await Core.checkPeriod('dlt');
+
+assert(context.Store.data.dlt.records.length === 1, 'Settled DLT records must be removed from pending records');
+assert(context.Store.data.dlt.records[0].period === '26069', 'Future DLT records must remain pending');
+const settledGroup = context.Store.data.dlt.history.find(group => group.period === '26067');
+assert(settledGroup, 'Settled DLT period must be added to history');
+assert(settledGroup.records[0].match.prize.name === '六等奖', 'Settled DLT 3+2 record must be sixth prize');
+const repairedGroup = context.Store.data.dlt.history.find(group => group.period === '26066');
+assert(repairedGroup.result.period === '26066', 'Existing history group result must match its own period');
+assert(repairedGroup.records[0].match.mRed === 2 && repairedGroup.records[0].match.mBlue === 1, 'Existing history matches must be recalculated after result repair');
 
 console.log('Core algorithm tests passed.');
