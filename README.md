@@ -153,9 +153,9 @@
 
 Firebase Realtime Database Rules 参考 `firebase-database.rules.json`。静态网页无法完全隐藏写权限，安全边界和发布步骤见 `SECURITY.md`。
 
-开奖结算由两层保障：
+开奖结算由后台任务处理：
 
-- GitHub Actions 每 30 分钟运行 `scripts/settle-lottery.mjs` 结算待开奖记录
+- GitHub Actions 每 30 分钟运行 `scripts/settle-lottery-admin.mjs` 结算待开奖记录
 - 浏览器端负责生成预测、读取数据和展示最新开奖，不再主动结算历史记录
 
 ## 更新日志
@@ -287,13 +287,13 @@ meihua-lottery/
 │       ├── ui.js       # 页面渲染和筛选
 │       └── app.js      # 应用启动和事件绑定
 ├── scripts/
-│   ├── settle-lottery.mjs # GitHub Actions 定时结算脚本
+│   ├── settle-lottery-admin.mjs # GitHub Actions Admin SDK 定时结算脚本
 │   ├── export-data.mjs    # 导出 Firebase 数据到本地
 │   ├── test-core.mjs      # 核心算法测试
 │   └── visual-check.mjs   # 本地 UI 截图检查
 ├── .github/
 │   └── workflows/
-│       └── settle-lottery.yml # 每 30 分钟结算待开奖记录
+│       └── settle-lottery-admin.yml # 每 30 分钟结算待开奖记录
 ├── README.md           # 项目文档
 ├── DEPLOY.md           # 部署指南
 ├── SECURITY.md         # Firebase 安全说明

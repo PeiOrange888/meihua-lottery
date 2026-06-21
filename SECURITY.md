@@ -38,25 +38,26 @@ Because this is a static public page, Firebase rules can restrict shape and
 paths, but they cannot fully prove that a write came from trusted application
 logic. A user can still send valid-looking writes from their own browser.
 
-For stronger integrity, move settlement and writes to a trusted backend:
+Settlement now runs through a GitHub Actions job using Firebase Admin SDK. For
+stronger integrity of visitor-created predictions, move browser writes to a
+trusted backend too:
 
 - Firebase Cloud Functions
-- GitHub Actions scheduled job
 - Cloudflare Workers
 - Another server-side API
 
 In that model, GitHub Pages remains the front end, and the backend performs
-settlement and database writes.
+all database writes.
 
 ## Scheduled Settlement
 
-This repository includes `.github/workflows/settle-lottery.yml`, which runs
-`scripts/settle-lottery.mjs` every 30 minutes and can also be triggered manually
-from the GitHub Actions tab.
+This repository includes `.github/workflows/settle-lottery-admin.yml`, which
+runs `scripts/settle-lottery-admin.mjs` every 30 minutes and can also be
+triggered manually from the GitHub Actions tab.
 
 The scheduled job handles lottery settlement so visitor browsers only need to
 create predictions, read data, and display the latest draw results. It does not
 by itself make writes fully private because the current Firebase rules still
 allow public browser writes for the static site. To make settlement fully
-trusted, move write access behind an authenticated backend or Firebase Admin SDK
-workflow and tighten browser write rules further.
+trusted end to end, move prediction creation behind an authenticated backend and
+tighten browser write rules further.
