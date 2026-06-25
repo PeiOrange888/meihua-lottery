@@ -129,3 +129,93 @@ assert(repairedGroup.result.period === '26066', 'Existing history group result m
 assert(repairedGroup.records[0].match.mRed === 2 && repairedGroup.records[0].match.mBlue === 1, 'Existing history matches must be recalculated after result repair');
 
 console.log('Core algorithm tests passed.');
+
+function createStoreTestContext(fetchImpl) {
+  const storeContext = {
+    console,
+    Date,
+    Intl,
+    fetch: fetchImpl,
+    localStorage: {
+      getItem: () => null,
+      setItem: () => {}
+    },
+    setTimeout: (fn) => {
+      fn();
+      return 1;
+    },
+    clearTimeout: () => {}
+  };
+  vm.createContext(storeContext);
+  const dataSource = fs.readFileSync('assets/js/data.js', 'utf8');
+  vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\nglobalThis.__storeTest = { Store, User };`, storeContext);
+  return storeContext.__storeTest;
+}
+
+{
+  const writes = [];
+  const { Store } = createStoreTestContext(async (url, options = {}) => {
+    writes.push({ url, options });
+    return {
+      ok: true,
+      json: async () => ({ name: 'firebase-generated-record-key' })
+    };
+  });
+  const record = {
+    id: 'p_test_record',
+    time: 1,
+    user: { id: 'u1', nickname: '测试居士' },
+    period: '2026066',
+    status: 'pending',
+    red: [1, 2, 3, 4, 5, 6],
+    blue: [7]
+  };
+
+  Store.addRecord('ssq', record);
+  await Store.save();
+
+  assert(writes.length === 2, 'Adding one record must persist the record and increment the shared count');
+  const recordWrite = writes.find(write => write.url.endsWith('/lottery/ssq/records/p_test_record.json'));
+  const countWrite = writes.find(write => write.url.endsWith('/lottery/qigua_count.json'));
+  assert(recordWrite, 'Predictions must write to their own record path');
+  assert(recordWrite.options.method === 'PUT', 'Predictions must use stable record keys');
+  assert(!writes.some(write => write.url.endsWith('/lottery/ssq.json')), 'Predictions must not replace the whole lottery type branch');
+  assert(countWrite, 'Persisted predictions must increment the shared qigua count');
+  assert(countWrite.options.method === 'PUT', 'Qigua count must use an atomic server increment write');
+  assert(countWrite.options.body === JSON.stringify({ '.sv': { increment: 1 } }), 'Qigua count must not be overwritten with a client-side total');
+}
+
+{
+  const { Store } = createStoreTestContext(async () => ({
+    ok: true,
+    json: async () => ({
+      qigua_count: 1,
+      ssq: {
+        records: {
+          r1: { id: 'r1', time: 1 }
+        },
+        history: {
+          '2026065': {
+            period: '2026065',
+            records: {
+              h1: { id: 'h1', time: 2 },
+              h2: { id: 'h2', time: 3 }
+            }
+          }
+        }
+      },
+      dlt: {
+        records: {
+          r2: { id: 'r2', time: 4 }
+        },
+        history: {}
+      }
+    })
+  }));
+
+  await Store.load();
+
+  assert(Store.data.qiguaCount === 4, 'Qigua count must be derived from stored prediction records');
+}
+
+console.log('Store persistence tests passed.');

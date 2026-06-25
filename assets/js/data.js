@@ -30,12 +30,15 @@ const User = {
 const Store = {
     data: { qiguaCount: 0, ssq: { period:'', records:[], result:null, history:[] }, dlt: { period:'', records:[], result:null, history:[] } },
     saveTimer: null,
-    dirtyMeta: false,
-    dirtyTypes: new Set(),
+    pendingRecords: [],
+    pendingCountIncrement: 0,
+    saveInFlight: null,
 
     normalizeRecords(value) {
         const records = Array.isArray(value) ? value.filter(Boolean) :
-            value && typeof value === 'object' ? Object.values(value).filter(Boolean) : [];
+            value && typeof value === 'object' ? Object.entries(value)
+                .filter(([, record]) => record)
+                .map(([key, record]) => typeof record === 'object' ? { key, ...record } : record) : [];
         return records.sort((a, b) => (a.time || a.timestamp || 0) - (b.time || b.timestamp || 0));
     },
 
@@ -60,35 +63,23 @@ const Store = {
         return String(record.id || record.key || fallback).replace(/[.#$/[\]]/g, '_');
     },
 
-    recordsById(records = []) {
-        return records.reduce((acc, record, index) => {
-            if (!record) return acc;
-            acc[this.keyForRecord(record, index)] = record;
-            return acc;
-        }, {});
+    countBranch(branch) {
+        const pending = (branch.records || []).length;
+        const settled = (branch.history || []).reduce((sum, group) => sum + ((group.records || []).length), 0);
+        return pending + settled;
     },
 
-    historyByPeriod(history = []) {
-        return history.reduce((acc, group, index) => {
-            if (!group) return acc;
-            const periodKey = String(group.period || index).replace(/[.#$/[\]]/g, '_');
-            acc[periodKey] = {
-                ...group,
-                records: this.recordsById(group.records || [])
-            };
-            return acc;
-        }, {});
+    countPredictions() {
+        return this.countBranch(this.data.ssq) + this.countBranch(this.data.dlt);
     },
 
-    serializeBranch(branch) {
-        return {
-            schemaVersion: CONFIG.DATA_VERSION,
-            updatedAt: Date.now(),
-            period: branch.period || '',
-            records: this.recordsById(branch.records || []),
-            result: branch.result || null,
-            history: this.historyByPeriod(branch.history || [])
-        };
+    recordUrl(type, record, fallback) {
+        const key = this.keyForRecord(record, fallback);
+        return CONFIG.FIREBASE_URL.replace('.json', `/${type}/records/${key}.json`);
+    },
+
+    countUrl() {
+        return CONFIG.FIREBASE_URL.replace('.json', '/qigua_count.json');
     },
 
     async load() {
@@ -96,71 +87,72 @@ const Store = {
             const res = await fetch(CONFIG.FIREBASE_URL);
             const d = await res.json();
             if (d) {
-                this.data.qiguaCount = d.qigua_count || 0;
                 if (d.ssq) this.data.ssq = this.normalizeBranch(d.ssq);
                 if (d.dlt) this.data.dlt = this.normalizeBranch(d.dlt);
+                this.data.qiguaCount = Math.max(Number(d.qigua_count) || 0, this.countPredictions());
             }
         } catch(e) { console.error('加载数据失败:', e); }
     },
 
-    scheduleSave(type = null) {
-        if (type) this.dirtyTypes.add(type);
-        else {
-            this.dirtyMeta = true;
-            this.dirtyTypes.add('ssq');
-            this.dirtyTypes.add('dlt');
-        }
-        if (this.saveTimer) clearTimeout(this.saveTimer);
-        this.saveTimer = setTimeout(() => this.save(), CONFIG.SAVE_DELAY);
-    },
-
-    scheduleMetaSave() {
-        this.dirtyMeta = true;
+    scheduleSave() {
         if (this.saveTimer) clearTimeout(this.saveTimer);
         this.saveTimer = setTimeout(() => this.save(), CONFIG.SAVE_DELAY);
     },
 
     async save() {
-        if (!this.dirtyMeta && this.dirtyTypes.size === 0) return;
-        try {
-                const writes = [];
-                if (this.dirtyMeta) {
-                    const meta = {
-                        schema_version: CONFIG.DATA_VERSION,
-                        updated_at: Date.now(),
-                        qigua_count: this.data.qiguaCount
-                    };
-                    Object.entries(meta).forEach(([key, value]) => {
-                        writes.push(fetch(CONFIG.FIREBASE_URL.replace('.json', `/${key}.json`), {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(value)
-                        }));
-                    });
+        if (this.saveInFlight) return this.saveInFlight;
+        if (this.pendingRecords.length === 0 && this.pendingCountIncrement === 0) return;
+
+        const run = async () => {
+            try {
+                const pending = [...this.pendingRecords];
+                const writes = pending.map((item, index) =>
+                    fetch(this.recordUrl(item.type, item.record, index), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(item.record)
+                    })
+                );
+                const results = await Promise.allSettled(writes);
+                const savedItems = pending.filter((_, index) => results[index]?.status === 'fulfilled' && results[index].value?.ok);
+                if (savedItems.length > 0) {
+                    const savedSet = new Set(savedItems);
+                    this.pendingRecords = this.pendingRecords.filter(item => !savedSet.has(item));
+                    this.pendingCountIncrement += savedItems.length;
                 }
-            this.dirtyTypes.forEach(type => {
-                writes.push(fetch(CONFIG.FIREBASE_URL.replace('.json', `/${type}.json`), {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(this.serializeBranch(this.data[type]))
-                }));
-            });
-            const results = await Promise.all(writes);
-            if (results.every(res => res.ok)) {
-                this.dirtyMeta = false;
-                this.dirtyTypes.clear();
+
+                while (this.pendingCountIncrement > 0) {
+                    const response = await fetch(this.countUrl(), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ '.sv': { increment: 1 } })
+                    });
+                    if (!response.ok) break;
+                    this.pendingCountIncrement--;
+                }
+
+                if (this.pendingRecords.length > 0 || this.pendingCountIncrement > 0) {
+                    this.scheduleSave();
+                }
+            } catch(e) {
+                console.error('保存数据失败:', e);
             }
-        } catch(e) { console.error('保存数据失败:', e); }
+        };
+
+        this.saveInFlight = run().finally(() => {
+            this.saveInFlight = null;
+        });
+        return this.saveInFlight;
     },
 
     addRecord(type, record) {
         this.data[type].records.push(record);
-        this.scheduleSave(type);
+        this.pendingRecords.push({ type, record });
+        this.scheduleSave();
     },
 
     incCount() {
         this.data.qiguaCount++;
-        this.scheduleMetaSave();
         return this.data.qiguaCount;
     }
 };

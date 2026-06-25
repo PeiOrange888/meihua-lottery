@@ -24,13 +24,15 @@ To apply the rules manually:
 6. Publish the rules.
 
 These rules keep the database readable for the page, but only allow writes under
-the expected `lottery` paths:
+the expected public `lottery` paths:
 
 - `lottery/qigua_count`
-- `lottery/schema_version`
-- `lottery/updated_at`
-- `lottery/ssq`
-- `lottery/dlt`
+- `lottery/ssq/records/{recordId}`
+- `lottery/dlt/records/{recordId}`
+
+Browser writes cannot replace an entire lottery branch. Prediction writes must
+create a new `pending` record with a stable key and valid ball ranges. Count
+writes must increase `qigua_count` by one.
 
 ## Limitations
 
@@ -58,6 +60,6 @@ triggered manually from the GitHub Actions tab.
 The scheduled job handles lottery settlement so visitor browsers only need to
 create predictions, read data, and display the latest draw results. It does not
 by itself make writes fully private because the current Firebase rules still
-allow public browser writes for the static site. To make settlement fully
-trusted end to end, move prediction creation behind an authenticated backend and
-tighten browser write rules further.
+allow public creation of valid-looking prediction records for the static site.
+To make settlement fully trusted end to end, move prediction creation behind an
+authenticated backend and remove browser database writes entirely.

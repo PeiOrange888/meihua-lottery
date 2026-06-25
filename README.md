@@ -145,11 +145,11 @@
 
 当前数据结构按彩种分支保存：
 
-- `qigua_count`：累计起卦次数
+- `qigua_count`：累计起卦次数，浏览器使用 Firebase server-side increment 单次递增
 - `ssq`：双色球预测、开奖和历史中奖记录
 - `dlt`：大乐透预测、开奖和历史中奖记录
 
-保存时只更新变化的分支，避免每次操作覆盖整个数据根节点。预测记录和历史记录写入时会转换为稳定 key 的对象格式，读取时兼容旧的数组格式。
+浏览器端只新增 `ssq/records/{id}` 或 `dlt/records/{id}` 预测记录，不覆盖整棵彩种分支；后台结算任务再按记录 key 移入历史中奖/结算分组。预测记录和历史记录写入时会转换为稳定 key 的对象格式，读取时兼容旧的数组格式。
 
 Firebase Realtime Database Rules 参考 `firebase-database.rules.json`。静态网页无法完全隐藏写权限，安全边界和发布步骤见 `SECURITY.md`。
 

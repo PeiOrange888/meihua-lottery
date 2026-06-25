@@ -6,22 +6,51 @@
       ".read": true,
       ".write": false,
       "qigua_count": {
-        ".write": "newData.isNumber() && newData.val() >= 0"
-      },
-      "schema_version": {
-        ".write": "newData.isNumber()"
-      },
-      "updated_at": {
-        ".write": "newData.isNumber()"
+        ".write": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() == 1) || (data.exists() && newData.val() == data.val() + 1))"
       },
       "ssq": {
-        ".write": "newData.hasChildren(['period', 'records', 'history'])"
+        ".write": false,
+        "records": {
+          "$recordId": {
+            ".write": "!data.exists() && newData.exists()",
+            ".validate": "newData.hasChildren(['id', 'time', 'user', 'period', 'status', 'red', 'blue']) && newData.child('id').isString() && newData.child('id').val() == $recordId && newData.child('time').isNumber() && newData.child('period').isString() && newData.child('status').val() == 'pending' && newData.child('user').hasChildren(['id', 'nickname']) && newData.child('user').child('id').isString() && newData.child('user').child('nickname').isString()",
+            "red": {
+              ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5']) && !newData.child('6').exists()",
+              "$idx": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 33"
+              }
+            },
+            "blue": {
+              ".validate": "newData.hasChildren(['0']) && !newData.child('1').exists()",
+              "$idx": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 16"
+              }
+            }
+          }
+        }
       },
       "dlt": {
-        ".write": "newData.hasChildren(['period', 'records', 'history'])"
+        ".write": false,
+        "records": {
+          "$recordId": {
+            ".write": "!data.exists() && newData.exists()",
+            ".validate": "newData.hasChildren(['id', 'time', 'user', 'period', 'status', 'red', 'blue']) && newData.child('id').isString() && newData.child('id').val() == $recordId && newData.child('time').isNumber() && newData.child('period').isString() && newData.child('status').val() == 'pending' && newData.child('user').hasChildren(['id', 'nickname']) && newData.child('user').child('id').isString() && newData.child('user').child('nickname').isString()",
+            "red": {
+              ".validate": "newData.hasChildren(['0', '1', '2', '3', '4']) && !newData.child('5').exists()",
+              "$idx": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 35"
+              }
+            },
+            "blue": {
+              ".validate": "newData.hasChildren(['0', '1']) && !newData.child('2').exists()",
+              "$idx": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 12"
+              }
+            }
+          }
+        }
       },
       "$other": {
-        ".read": false,
         ".write": false
       }
     }

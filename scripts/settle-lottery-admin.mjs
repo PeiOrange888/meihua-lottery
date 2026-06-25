@@ -79,7 +79,9 @@ function normalizeRecords(value) {
   const records = Array.isArray(value)
     ? value.filter(Boolean)
     : value && typeof value === 'object'
-      ? Object.values(value).filter(Boolean)
+      ? Object.entries(value)
+        .filter(([, record]) => record)
+        .map(([key, record]) => typeof record === 'object' ? { key, ...record } : record)
       : [];
   return records.sort((a, b) => (a.time || a.timestamp || 0) - (b.time || b.timestamp || 0));
 }
@@ -132,15 +134,20 @@ function historyByPeriod(history = []) {
   }, {});
 }
 
-function serializeBranch(branch) {
-  return {
+async function writeBranchUpdate(type, branch, pendingWrites, settledKeys) {
+  const ref = db.ref(`lottery/${type}`);
+  await ref.update({
     schemaVersion: DATA_VERSION,
     updatedAt: Date.now(),
     period: branch.period || '',
-    records: recordsById(branch.records || []),
     result: branch.result || null,
     history: historyByPeriod(branch.history || [])
-  };
+  });
+
+  await Promise.all([
+    ...pendingWrites.map(({ key, record }) => ref.child(`records/${key}`).set(record)),
+    ...settledKeys.map(key => ref.child(`records/${key}`).remove())
+  ]);
 }
 
 function matchSSQ(rec, res) {
@@ -235,18 +242,23 @@ async function settleType(dbSnapshot, type) {
   results.forEach(result => { resultsByPeriod[result.period] = result; });
 
   const pending = [];
+  const pendingWrites = [];
+  const settledKeys = [];
   const groups = {};
-  branch.records.forEach(record => {
+  branch.records.forEach((record, index) => {
     const recordPeriod = record.period || previousPeriod || branch.period;
     const normalized = { ...record, period: recordPeriod, status: record.status || 'pending' };
+    const recordKey = keyForRecord(normalized, index);
     const result = resultsByPeriod[recordPeriod];
     if (result && comparePeriod(recordPeriod, latest.period) <= 0) {
       const match = type === 'ssq' ? matchSSQ(normalized, result) : matchDLT(normalized, result);
       const settled = { ...normalized, status: 'settled', match };
       if (!groups[recordPeriod]) groups[recordPeriod] = { period: recordPeriod, records: [], result };
       groups[recordPeriod].records.push(settled);
+      settledKeys.push(recordKey);
     } else {
       pending.push(normalized);
+      pendingWrites.push({ key: recordKey, record: normalized });
     }
   });
 
@@ -256,8 +268,7 @@ async function settleType(dbSnapshot, type) {
   const refreshed = refreshHistory(branch, type, resultsByPeriod);
 
   if (!DRY_RUN) {
-    const ref = db.ref(`lottery/${type}`);
-    await ref.set(serializeBranch(branch));
+    await writeBranchUpdate(type, branch, pendingWrites, settledKeys);
   }
 
   return { type, settled, refreshed, pending: pending.length, changed: settled > 0 || refreshed > 0 };

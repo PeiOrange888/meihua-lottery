@@ -1,7 +1,6 @@
 backups/*.json
 tmp/
 node_modules/
-package-lock.json
 firebase-service-account.json
 SECURITY_KEY_ROTATION.md
 *.log
