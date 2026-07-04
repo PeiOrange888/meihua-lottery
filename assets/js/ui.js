@@ -143,7 +143,7 @@ const UI = {
         const settledHistory = Core.settledGroups(type, this.historyRange);
         if (settledHistory.length === 0) {
             const rangeText = this.historyRange === 'all' ? '' : `（近${this.historyRange}天）`;
-            el.innerHTML = `<p class="text-center text-secondary">暂无结算明细${rangeText}</p>`;
+            el.innerHTML = `<p class="text-center text-secondary">暂无历史预测${rangeText}</p>`;
             return;
         }
 

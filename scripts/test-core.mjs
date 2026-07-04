@@ -5,6 +5,7 @@ const configSource = fs.readFileSync('assets/js/config.js', 'utf8');
 const logicSource = fs.readFileSync('assets/js/logic.js', 'utf8');
 const dataSource = fs.readFileSync('assets/js/data.js', 'utf8');
 const appSource = fs.readFileSync('assets/js/app.js', 'utf8');
+const indexSource = fs.readFileSync('index.html', 'utf8');
 
 const context = {
   console,
@@ -35,6 +36,8 @@ function inRange(values, min, max) {
   return values.every(value => Number.isInteger(value) && value >= min && value <= max);
 }
 
+assert(indexSource.includes('历史预测'), 'Page must label settled prediction section as 历史预测');
+assert(!indexSource.includes('结算明细'), 'Page must not show the old 结算明细 label');
 assert(!logicSource.includes('Math.random'), 'Core logic must not use Math.random');
 assert(WEN_WANG_64.length === 64, 'Wen Wang table must contain 64 hexagrams');
 assert(unique(WEN_WANG_64.map(gua => gua.seq)), 'Hexagram sequences must be unique');
