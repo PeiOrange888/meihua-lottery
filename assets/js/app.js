@@ -20,16 +20,19 @@ const App = {
     },
 
     async _updateLottery(type) {
-        const [period, result] = await Promise.all([
-            Api.getPeriod(type),
-            Api.getResult(type)
-        ]);
-        if (period) Store.data[type].period = period;
-        UI.setPeriod(type, Store.data[type].period || '--');
-        if (result) {
-            Store.data[type].result = result;
-            UI.renderLotteryResult(type);
+        try {
+            await Core.checkPeriod(type);
+        } catch(e) {
+            console.error('开奖结算检查失败:', e);
+            const [period, result] = await Promise.all([
+                Api.getPeriod(type),
+                Api.getResult(type)
+            ]);
+            if (period) Store.data[type].period = period;
+            if (result) Store.data[type].result = result;
         }
+        UI.setPeriod(type, Store.data[type].period || '--');
+        UI.renderLotteryResult(type);
         UI.renderRecords(type);
     },
 

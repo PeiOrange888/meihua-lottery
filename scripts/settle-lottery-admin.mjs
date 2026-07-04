@@ -1,4 +1,4 @@
-import admin from 'firebase-admin';
+import { cert, deleteApp, initializeApp } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
 const LOTTERY_API = 'https://api.huiniao.top/interface/home/lotteryHistory';
@@ -20,14 +20,14 @@ if (!serviceAccount && !DRY_RUN) {
   process.exit(1);
 }
 
-if (serviceAccount) {
-  admin.initializeApp({
-    credential: admin.cert(serviceAccount),
+const app = serviceAccount
+  ? initializeApp({
+    credential: cert(serviceAccount),
     databaseURL: 'https://meihua-abb40-default-rtdb.firebaseio.com'
-  });
-}
+  })
+  : null;
 
-const db = serviceAccount ? getDatabase() : null;
+const db = app ? getDatabase(app) : null;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -288,8 +288,8 @@ async function main() {
   console.log(JSON.stringify({ dryRun: DRY_RUN, results }, null, 2));
 
   // 关闭连接
-  if (!DRY_RUN) {
-    await admin.app().delete();
+  if (app) {
+    await deleteApp(app);
   }
 }
 

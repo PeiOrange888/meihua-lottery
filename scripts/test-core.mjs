@@ -3,6 +3,8 @@ import vm from 'node:vm';
 
 const configSource = fs.readFileSync('assets/js/config.js', 'utf8');
 const logicSource = fs.readFileSync('assets/js/logic.js', 'utf8');
+const dataSource = fs.readFileSync('assets/js/data.js', 'utf8');
+const appSource = fs.readFileSync('assets/js/app.js', 'utf8');
 
 const context = {
   console,
@@ -147,9 +149,76 @@ function createStoreTestContext(fetchImpl) {
     clearTimeout: () => {}
   };
   vm.createContext(storeContext);
-  const dataSource = fs.readFileSync('assets/js/data.js', 'utf8');
   vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\nglobalThis.__storeTest = { Store, User };`, storeContext);
   return storeContext.__storeTest;
+}
+
+function createAppTestContext() {
+  const elements = new Map();
+  const element = id => {
+    if (!elements.has(id)) {
+      elements.set(id, {
+        id,
+        textContent: '',
+        innerHTML: '',
+        disabled: false,
+        dataset: {},
+        classList: {
+          add() {},
+          remove() {},
+          toggle() {},
+          contains() { return false; }
+        },
+        appendChild() {},
+        addEventListener() {},
+        closest() { return null; },
+        previousElementSibling: { textContent: '' }
+      });
+    }
+    return elements.get(id);
+  };
+  const appContext = {
+    console,
+    Date,
+    Intl,
+    fetch: async () => ({ ok: true, json: async () => null }),
+    location: { protocol: 'https:' },
+    localStorage: {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+      key: () => null,
+      length: 0
+    },
+    setInterval: () => 1,
+    setTimeout: fn => {
+      fn();
+      return 1;
+    },
+    clearTimeout: () => {},
+    document: {
+      head: element('head'),
+      createElement: tag => element(tag),
+      getElementById: element,
+      querySelectorAll: () => [],
+      addEventListener: () => {}
+    },
+    window: {}
+  };
+  appContext.UI = {
+    setCount() {},
+    setPeriod() {},
+    renderRecords() {},
+    renderLotteryResult() {},
+    setLoading() {},
+    setTime() {},
+    renderResult() {},
+    showToast() {},
+    $: element
+  };
+  vm.createContext(appContext);
+  vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\n${appSource}\nglobalThis.__appTest = { App, Api, Store, UI };`, appContext);
+  return appContext.__appTest;
 }
 
 {
@@ -219,3 +288,35 @@ function createStoreTestContext(fetchImpl) {
 }
 
 console.log('Store persistence tests passed.');
+
+{
+  const { App, Api, Store, UI } = createAppTestContext();
+  const rendered = [];
+  Store.data.dlt = {
+    period: '26069',
+    result: { period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' },
+    records: [
+      { id: 'pending-26068', period: '26068', status: 'pending', red: [7, 8, 9, 10, 11], blue: [3, 4], time: 1 },
+      { id: 'pending-26069', period: '26069', status: 'pending', red: [6, 7, 8, 9, 10], blue: [5, 6], time: 2 }
+    ],
+    history: []
+  };
+  Store.scheduleSave = () => {};
+  UI.renderRecords = type => rendered.push(type);
+  Api.getLatest = async () => ({ period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' });
+  Api.getPeriod = async () => '26069';
+  Api.getResult = async () => ({ period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' });
+  Api.getResults = async () => [
+    { period: '26068', nextPeriod: '26069', red: [7, 8, 9, 10, 11], blue: [3, 4], date: '2026-06-20' }
+  ];
+
+  await App._updateLottery('dlt');
+
+  assert(Store.data.dlt.records.length === 1, 'App lottery refresh must settle closed pending records locally');
+  assert(Store.data.dlt.records[0].period === '26069', 'App lottery refresh must keep current-period pending records');
+  const settledGroup = Store.data.dlt.history.find(group => group.period === '26068');
+  assert(settledGroup?.records[0]?.status === 'settled', 'App lottery refresh must expose settled records in history');
+  assert(rendered.includes('dlt'), 'App lottery refresh must render updated records after settlement');
+}
+
+console.log('App refresh settlement tests passed.');
