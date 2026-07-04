@@ -11,45 +11,48 @@
     <div class="container">
         <!-- 头部 -->
         <header class="header">
-            <h1>梅花易数</h1>
-            <p class="subtitle">以易道观天机，以数理测运势</p>
-            <p id="user-nickname" class="text-sm"></p>
+            <div class="brand-mark" aria-hidden="true">易</div>
+            <div class="brand-copy">
+                <h1>梅花易数</h1>
+                <p class="subtitle">以时辰起卦，按卦象映射双色球与大乐透</p>
+                <p id="user-nickname" class="text-sm"></p>
+            </div>
         </header>
 
-        <!-- 气运测试 -->
-        <section class="gua-border">
-            <h3 class="section-title">今日气运</h3>
-            <div id="qiyun-display">
-                <p class="text-center text-secondary">点击按钮测试今日气运</p>
+        <!-- 起卦工作台 -->
+        <section class="oracle-stage">
+            <div class="stage-panel qiyun-panel">
+                <div class="section-head">
+                    <h3 class="section-title mb-0">今日气运</h3>
+                    <button id="btn-qiyun" class="btn btn-cinnabar">测试气运</button>
+                </div>
+                <div id="qiyun-display" class="qiyun-empty">
+                    <p class="text-center text-secondary">点击按钮测试今日气运</p>
+                </div>
             </div>
-            <div class="text-center mt-4">
-                <button id="btn-qiyun" class="btn btn-cinnabar">测试气运</button>
+            <div class="stage-panel action-panel">
+                <h3 class="section-title">起卦测号</h3>
+                <div class="action-grid">
+                    <button id="btn-ssq" class="btn btn-oracle">福彩双色球</button>
+                    <button id="btn-dlt" class="btn btn-oracle">体彩大乐透</button>
+                </div>
+                <p id="time-display" class="text-center text-secondary mt-4 text-sm"></p>
             </div>
-        </section>
-
-        <!-- 起卦按钮 -->
-        <section class="gua-border">
-            <h3 class="section-title">起卦测号</h3>
-            <div class="flex-center flex-wrap gap-4">
-                <button id="btn-ssq" class="btn">福彩双色球</button>
-                <button id="btn-dlt" class="btn">体彩大乐透</button>
-            </div>
-            <p id="time-display" class="text-center text-secondary mt-4 text-sm"></p>
         </section>
 
         <!-- 结果展示 -->
-        <section id="result-section" class="hidden">
+        <section id="result-section" class="hidden result-section">
             <div class="grid-2">
                 <!-- 双色球 -->
-                <div class="gua-border">
+                <div class="gua-border result-panel result-ssq">
                     <h3 class="section-title">福彩双色球</h3>
                     <div class="mb-4">
                         <p class="text-sm text-secondary mb-4">红球</p>
-                        <div id="ssq-red" class="flex-wrap flex-center"></div>
+                        <div id="ssq-red" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
                     </div>
                     <div class="mb-4">
                         <p class="text-sm text-secondary mb-4">蓝球</p>
-                        <div id="ssq-blue" class="flex-wrap flex-center"></div>
+                        <div id="ssq-blue" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
                     </div>
                     <div class="detail-box">
                         <div id="ssq-info" class="text-sm"></div>
@@ -59,15 +62,15 @@
                 </div>
 
                 <!-- 大乐透 -->
-                <div class="gua-border">
+                <div class="gua-border result-panel result-dlt">
                     <h3 class="section-title">体彩大乐透</h3>
                     <div class="mb-4">
                         <p class="text-sm text-secondary mb-4">前区</p>
-                        <div id="dlt-front" class="flex-wrap flex-center"></div>
+                        <div id="dlt-front" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
                     </div>
                     <div class="mb-4">
                         <p class="text-sm text-secondary mb-4">后区</p>
-                        <div id="dlt-back" class="flex-wrap flex-center"></div>
+                        <div id="dlt-back" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
                     </div>
                     <div class="detail-box">
                         <div id="dlt-info" class="text-sm"></div>
@@ -79,9 +82,9 @@
         </section>
 
         <!-- 预测记录 -->
-        <section class="mb-8">
+        <section class="ledger-section mb-8">
             <!-- 双色球记录 -->
-            <div class="gua-border mb-8">
+            <div class="gua-border ledger-panel mb-8">
                 <div class="section-head">
                     <h3 class="section-title mb-0">福彩预测记录</h3>
                     <div class="flex-center gap-4">
@@ -97,7 +100,7 @@
             </div>
 
             <!-- 大乐透记录 -->
-            <div class="gua-border mb-8">
+            <div class="gua-border ledger-panel mb-8">
                 <div class="section-head">
                     <h3 class="section-title mb-0">体彩预测记录</h3>
                     <div class="flex-center gap-4">
@@ -114,7 +117,7 @@
         </section>
 
         <!-- 历史记录 -->
-        <section class="gua-border mb-8">
+        <section class="gua-border archive-panel mb-8">
             <h3 class="section-title text-center">历史中奖</h3>
             <div class="filter-bar">
                 <button class="filter-btn active" data-history-range="all">全部</button>
@@ -139,7 +142,7 @@
         </section>
 
         <!-- 历史预测 -->
-        <section class="gua-border mb-8">
+        <section class="gua-border archive-panel mb-8">
             <h3 class="section-title text-center">历史预测</h3>
             <div class="grid-2">
                 <div>

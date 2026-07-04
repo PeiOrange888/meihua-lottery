@@ -227,11 +227,15 @@ const UI = {
             </div>
         </div>`;
         this.$('qiyun-display').innerHTML = `<div class="qiyun-card qiyun-${level.color}">
-            <div class="qiyun-title">${level.name}</div>
-            <div class="qiyun-score">${score}分</div>
-            <p style="margin-top:0.5rem">${level.desc}</p>
-            ${detail}
-            <p class="qiyun-advice">${reading.advice || level.advice}</p></div>`;
+            <div class="qiyun-seal">
+                <div class="qiyun-title">${level.name}</div>
+                <div class="qiyun-score">${score}分</div>
+            </div>
+            <div class="qiyun-body">
+                <p>${level.desc}</p>
+                ${detail}
+                <p class="qiyun-advice">${reading.advice || level.advice}</p>
+            </div></div>`;
     },
 
     setTime(g) { this.$('time-display').textContent = `${g.y}年${g.m}月${g.d}日 ${g.h}时${g.min}分${g.s}秒`; },
