@@ -158,6 +158,7 @@ function createStoreTestContext(fetchImpl) {
 
 function createAppTestContext() {
   const elements = new Map();
+  const storage = new Map();
   const element = id => {
     if (!elements.has(id)) {
       elements.set(id, {
@@ -187,11 +188,11 @@ function createAppTestContext() {
     fetch: async () => ({ ok: true, json: async () => null }),
     location: { protocol: 'https:' },
     localStorage: {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {},
-      key: () => null,
-      length: 0
+      getItem: key => storage.has(key) ? storage.get(key) : null,
+      setItem: (key, value) => storage.set(key, String(value)),
+      removeItem: key => storage.delete(key),
+      key: index => Array.from(storage.keys())[index] || null,
+      get length() { return storage.size; }
     },
     setInterval: () => 1,
     setTimeout: fn => {
@@ -323,3 +324,36 @@ console.log('Store persistence tests passed.');
 }
 
 console.log('App refresh settlement tests passed.');
+
+{
+  const { App, Store, UI } = createAppTestContext();
+  const addedRecords = [];
+  const counts = [];
+  const toasts = [];
+
+  Store.data.ssq = { period: '2026070', records: [], result: null, history: [] };
+  Store.data.qiguaCount = 0;
+  Store.incCount = () => {
+    Store.data.qiguaCount++;
+    counts.push(Store.data.qiguaCount);
+    return Store.data.qiguaCount;
+  };
+  Store.addRecord = (type, record) => {
+    Store.data[type].records.push(record);
+    addedRecords.push({ type, record });
+  };
+  UI.setCount = count => counts.push(`render:${count}`);
+  UI.renderRecords = () => {};
+  UI.setTime = () => {};
+  UI.renderResult = () => {};
+  UI.showToast = message => toasts.push(message);
+
+  await App.doQiGua('ssq');
+  await App.doQiGua('ssq');
+
+  assert(addedRecords.length === 1, 'Same shichen repeat prediction must not add duplicate records');
+  assert(Store.data.qiguaCount === 1, 'Same shichen repeat prediction must not increment qigua count');
+  assert(toasts.includes('本时辰已起卦，卦象相同'), 'Same shichen repeat prediction must show cached-result toast');
+}
+
+console.log('App shichen cache tests passed.');
