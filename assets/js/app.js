@@ -46,8 +46,8 @@ const App = {
             if (cached) {
                 // 显示缓存的结果
                 UI.setTime(cached.gua);
-                UI.$('result-section').classList.remove('hidden');
                 UI.renderResult(type, cached.gua, cached.lottery);
+                UI.showResult?.();
                 UI.renderRecords(type);
                 UI.showToast('本时辰已起卦，卦象相同');
                 return;
@@ -60,8 +60,8 @@ const App = {
             this._saveShichenCache(type, now, g, l);
 
             UI.setTime(g);
-            UI.$('result-section').classList.remove('hidden');
             UI.renderResult(type, g, l);
+            UI.showResult?.();
             const user = User.get();
             const record = {
                 id: `p_${Date.now()}`,

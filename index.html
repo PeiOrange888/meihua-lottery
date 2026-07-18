@@ -3,180 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>梅花易数 · 彩票预测</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=2.3.0">
+    <meta name="theme-color" content="#121714">
+    <meta name="description" content="以梅花易数时间起卦法生成可解释、可复现的彩票号码娱乐推演。">
+    <title>梅花易数 · 时辰起卦</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css?v=3.0.0">
 </head>
 <body>
-    <div class="container">
-        <!-- 头部 -->
-        <header class="header">
-            <div class="brand-mark" aria-hidden="true">易</div>
-            <div class="brand-copy">
-                <h1>梅花易数</h1>
-                <p class="subtitle">以时辰起卦，按卦象映射双色球与大乐透</p>
-                <p id="user-nickname" class="text-sm"></p>
+    <a class="skip-link" href="#main-content">跳至主要内容</a>
+    <div class="ambient ambient-cinnabar" aria-hidden="true"></div>
+    <div class="ambient ambient-jade" aria-hidden="true"></div>
+
+    <div class="page-shell">
+        <header class="hero" id="top">
+            <nav class="topbar" aria-label="页面导航">
+                <a class="mini-brand" href="#top" aria-label="返回顶部">
+                    <span class="mini-brand-mark" aria-hidden="true">梅</span>
+                    <span>梅花易数</span>
+                </a>
+                <div class="topnav">
+                    <a href="#oracle">起卦</a>
+                    <a href="#records">预测记录</a>
+                    <a href="#archive">历史归档</a>
+                </div>
+                <span class="mode-badge">娱乐推演</span>
+            </nav>
+
+            <div class="hero-layout">
+                <div class="hero-copy">
+                    <p class="eyebrow"><span></span> 东方数理 · 时辰起卦</p>
+                    <h1>观象于天，<br><em>取数于时。</em></h1>
+                    <p class="hero-description">以北京时间与农历时辰起卦，将本卦、互卦与变卦映射为双色球及大乐透号码。每一组结果，都能回看完整推演路径。</p>
+                    <div class="hero-meta">
+                        <p id="user-nickname" class="identity-chip" aria-live="polite"></p>
+                        <span class="principle-chip">一时一卦 · 结果可复现</span>
+                    </div>
+                </div>
+
+                <div class="oracle-emblem" aria-hidden="true">
+                    <div class="orbit orbit-one"></div>
+                    <div class="orbit orbit-two"></div>
+                    <div class="emblem-core">
+                        <span class="emblem-small">梅花</span>
+                        <strong>易</strong>
+                        <span class="emblem-small">数理</span>
+                    </div>
+                    <span class="emblem-label label-top">乾</span>
+                    <span class="emblem-label label-right">离</span>
+                    <span class="emblem-label label-bottom">坤</span>
+                    <span class="emblem-label label-left">坎</span>
+                </div>
             </div>
         </header>
 
-        <!-- 起卦工作台 -->
-        <section class="oracle-stage">
-            <div class="stage-panel qiyun-panel">
-                <div class="section-head">
-                    <h3 class="section-title mb-0">今日气运</h3>
-                    <button id="btn-qiyun" class="btn btn-cinnabar">测试气运</button>
-                </div>
-                <div id="qiyun-display" class="qiyun-empty">
-                    <p class="text-center text-secondary">点击按钮测试今日气运</p>
-                </div>
-            </div>
-            <div class="stage-panel action-panel">
-                <h3 class="section-title">起卦测号</h3>
-                <div class="action-grid">
-                    <button id="btn-ssq" class="btn btn-oracle">福彩双色球</button>
-                    <button id="btn-dlt" class="btn btn-oracle">体彩大乐透</button>
-                </div>
-                <p id="time-display" class="text-center text-secondary mt-4 text-sm"></p>
-            </div>
-        </section>
-
-        <!-- 结果展示 -->
-        <section id="result-section" class="hidden result-section">
-            <div class="grid-2">
-                <!-- 双色球 -->
-                <div class="gua-border result-panel result-ssq">
-                    <h3 class="section-title">福彩双色球</h3>
-                    <div class="mb-4">
-                        <p class="text-sm text-secondary mb-4">红球</p>
-                        <div id="ssq-red" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
+        <main id="main-content">
+            <section class="section-block oracle-section" id="oracle" aria-labelledby="oracle-title">
+                <div class="section-intro">
+                    <div>
+                        <p class="section-kicker">ORACLE WORKBENCH</p>
+                        <h2 id="oracle-title">今日卦台</h2>
                     </div>
-                    <div class="mb-4">
-                        <p class="text-sm text-secondary mb-4">蓝球</p>
-                        <div id="ssq-blue" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
-                    </div>
-                    <div class="detail-box">
-                        <div id="ssq-info" class="text-sm"></div>
-                        <button class="detail-toggle text-sm" onclick="UI.toggleDetail('ssq')">查看详细推导</button>
-                        <div id="ssq-detail" class="hidden mt-4 text-sm text-secondary"></div>
-                    </div>
+                    <p>先观今日气运，或直接选择彩种起卦。<br>同一时辰重复起卦将沿用同一结果。</p>
                 </div>
 
-                <!-- 大乐透 -->
-                <div class="gua-border result-panel result-dlt">
-                    <h3 class="section-title">体彩大乐透</h3>
-                    <div class="mb-4">
-                        <p class="text-sm text-secondary mb-4">前区</p>
-                        <div id="dlt-front" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
-                    </div>
-                    <div class="mb-4">
-                        <p class="text-sm text-secondary mb-4">后区</p>
-                        <div id="dlt-back" class="flex-wrap flex-center"><span class="empty-result">待起卦</span></div>
-                    </div>
-                    <div class="detail-box">
-                        <div id="dlt-info" class="text-sm"></div>
-                        <button class="detail-toggle text-sm" onclick="UI.toggleDetail('dlt')">查看详细推导</button>
-                        <div id="dlt-detail" class="hidden mt-4 text-sm text-secondary"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                <div class="oracle-stage">
+                    <article class="stage-panel qiyun-panel">
+                        <div class="panel-heading">
+                            <div>
+                                <span class="panel-index">01</span>
+                                <h3>今日气运</h3>
+                            </div>
+                            <button id="btn-qiyun" class="btn btn-secondary" type="button">
+                                <span>观今日气运</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </button>
+                        </div>
+                        <div id="qiyun-display" class="qiyun-empty" aria-live="polite" aria-atomic="true">
+                            <div class="empty-symbol" aria-hidden="true">卦</div>
+                            <div>
+                                <p class="empty-title">气运尚未推演</p>
+                                <p class="text-secondary">依据体用、时令与动爻，生成今日卦势解读。</p>
+                            </div>
+                        </div>
+                    </article>
 
-        <!-- 预测记录 -->
-        <section class="ledger-section mb-8">
-            <!-- 双色球记录 -->
-            <div class="gua-border ledger-panel mb-8">
-                <div class="section-head">
-                    <h3 class="section-title mb-0">福彩预测记录</h3>
-                    <div class="flex-center gap-4">
-                        <span id="ssq-period" class="text-sm text-secondary">期号：--</span>
-                    </div>
+                    <article class="stage-panel action-panel">
+                        <div class="panel-heading action-heading">
+                            <div>
+                                <span class="panel-index">02</span>
+                                <h3>起卦测号</h3>
+                            </div>
+                            <span class="status-dot"><i></i> 卦台已就绪</span>
+                        </div>
+                        <div class="action-grid">
+                            <button id="btn-ssq" class="btn btn-oracle btn-ssq" type="button">
+                                <span class="action-number">01</span>
+                                <span class="action-copy"><strong>福彩双色球</strong><small>六枚红球 · 一枚蓝球</small></span>
+                                <span class="action-arrow" aria-hidden="true">起</span>
+                            </button>
+                            <button id="btn-dlt" class="btn btn-oracle btn-dlt" type="button">
+                                <span class="action-number">02</span>
+                                <span class="action-copy"><strong>体彩大乐透</strong><small>五枚前区 · 两枚后区</small></span>
+                                <span class="action-arrow" aria-hidden="true">起</span>
+                            </button>
+                        </div>
+                        <p id="time-display" class="time-display" aria-live="polite">以当前北京时间起卦</p>
+                    </article>
                 </div>
-                <div id="ssq-result" class="mb-4 text-sm text-secondary"></div>
-                <div class="record-container">
-                    <div id="ssq-records" class="record-scroll">
-                        <p class="text-center py-4 text-secondary">暂无预测</p>
-                    </div>
-                </div>
-            </div>
+            </section>
 
-            <!-- 大乐透记录 -->
-            <div class="gua-border ledger-panel mb-8">
-                <div class="section-head">
-                    <h3 class="section-title mb-0">体彩预测记录</h3>
-                    <div class="flex-center gap-4">
-                        <span id="dlt-period" class="text-sm text-secondary">期号：--</span>
+            <section id="result-section" class="section-block result-section hidden" aria-labelledby="result-title" aria-live="polite">
+                <div class="section-intro compact">
+                    <div>
+                        <p class="section-kicker">CURRENT READING</p>
+                        <h2 id="result-title">本时辰推演</h2>
                     </div>
+                    <p>号码仅为卦象数理映射，点击“查看详细推导”可核对每一步来源。</p>
                 </div>
-                <div id="dlt-result" class="mb-4 text-sm text-secondary"></div>
-                <div class="record-container">
-                    <div id="dlt-records" class="record-scroll">
-                        <p class="text-center py-4 text-secondary">暂无预测</p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- 历史记录 -->
-        <section class="gua-border archive-panel mb-8">
-            <h3 class="section-title text-center">历史中奖</h3>
-            <div class="filter-bar">
-                <button class="filter-btn active" data-history-range="all">全部</button>
-                <button class="filter-btn" data-history-range="7">近7天</button>
-                <button class="filter-btn" data-history-range="30">近30天</button>
-                <button class="filter-btn" data-history-range="90">近90天</button>
-            </div>
-            <div class="grid-2">
-                <div>
-                    <p class="text-sm text-secondary mb-4">福彩双色球</p>
-                    <div id="ssq-history">
-                        <p class="text-center text-secondary">暂无记录</p>
-                    </div>
-                </div>
-                <div>
-                    <p class="text-sm text-secondary mb-4">体彩大乐透</p>
-                    <div id="dlt-history">
-                        <p class="text-center text-secondary">暂无记录</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+                <div class="grid-2 result-grid">
+                    <article class="gua-border result-panel result-ssq">
+                        <div class="result-heading">
+                            <div>
+                                <span class="lottery-tag tag-ssq">福彩</span>
+                                <h3>双色球</h3>
+                            </div>
+                            <span class="result-status">本时辰</span>
+                        </div>
+                        <div class="number-group">
+                            <p class="number-label">红球 <span>6 / 33</span></p>
+                            <div id="ssq-red" class="ball-row"><span class="empty-result">待起卦</span></div>
+                        </div>
+                        <div class="number-group number-group-last">
+                            <p class="number-label">蓝球 <span>1 / 16</span></p>
+                            <div id="ssq-blue" class="ball-row"><span class="empty-result">待起卦</span></div>
+                        </div>
+                        <div class="detail-box">
+                            <div id="ssq-info" class="gua-summary"></div>
+                            <button class="detail-toggle" type="button" aria-expanded="false" aria-controls="ssq-detail" onclick="UI.toggleDetail('ssq')">查看详细推导</button>
+                            <div id="ssq-detail" class="hidden detail-content text-secondary"></div>
+                        </div>
+                    </article>
 
-        <!-- 历史预测 -->
-        <section class="gua-border archive-panel mb-8">
-            <h3 class="section-title text-center">历史预测</h3>
-            <div class="grid-2">
-                <div>
-                    <p class="text-sm text-secondary mb-4">福彩双色球</p>
-                    <div id="ssq-settled">
-                        <p class="text-center text-secondary">暂无历史预测</p>
-                    </div>
+                    <article class="gua-border result-panel result-dlt">
+                        <div class="result-heading">
+                            <div>
+                                <span class="lottery-tag tag-dlt">体彩</span>
+                                <h3>大乐透</h3>
+                            </div>
+                            <span class="result-status">本时辰</span>
+                        </div>
+                        <div class="number-group">
+                            <p class="number-label">前区 <span>5 / 35</span></p>
+                            <div id="dlt-front" class="ball-row"><span class="empty-result">待起卦</span></div>
+                        </div>
+                        <div class="number-group number-group-last">
+                            <p class="number-label">后区 <span>2 / 12</span></p>
+                            <div id="dlt-back" class="ball-row"><span class="empty-result">待起卦</span></div>
+                        </div>
+                        <div class="detail-box">
+                            <div id="dlt-info" class="gua-summary"></div>
+                            <button class="detail-toggle" type="button" aria-expanded="false" aria-controls="dlt-detail" onclick="UI.toggleDetail('dlt')">查看详细推导</button>
+                            <div id="dlt-detail" class="hidden detail-content text-secondary"></div>
+                        </div>
+                    </article>
                 </div>
-                <div>
-                    <p class="text-sm text-secondary mb-4">体彩大乐透</p>
-                    <div id="dlt-settled">
-                        <p class="text-center text-secondary">暂无历史预测</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- 底部 -->
-        <footer class="text-center text-sm text-secondary mt-8">
-            <p>卦以载道，数以明理。彩票开奖乃随机之事，此工具仅供娱乐。</p>
-            <div class="footer-stats mt-4 text-sm">
-                <span>访问 <span id="busuanzi_value_site_pv">0</span> 次</span>
-                <span>访客 <span id="busuanzi_value_site_uv">0</span> 人</span>
-                <span>起卦 <span id="qigua-count">0</span> 次</span>
+            <section class="section-block ledger-section" id="records" aria-labelledby="records-title">
+                <div class="section-intro compact">
+                    <div>
+                        <p class="section-kicker">LIVE LEDGER</p>
+                        <h2 id="records-title">当期预测记录</h2>
+                    </div>
+                    <p>汇集当前期号的公开预测；自己的记录将以朱砂色标识。</p>
+                </div>
+
+                <div class="records-grid">
+                    <article class="gua-border ledger-panel">
+                        <div class="ledger-heading">
+                            <div>
+                                <span class="lottery-tag tag-ssq">福彩</span>
+                                <h3>双色球预测</h3>
+                            </div>
+                            <span id="ssq-period" class="period-chip">期号：--</span>
+                        </div>
+                        <div id="ssq-result" class="latest-draw text-secondary" aria-live="polite"></div>
+                        <div class="record-container">
+                            <div id="ssq-records" class="record-list" aria-live="polite">
+                                <p class="empty-list">暂无预测</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="gua-border ledger-panel">
+                        <div class="ledger-heading">
+                            <div>
+                                <span class="lottery-tag tag-dlt">体彩</span>
+                                <h3>大乐透预测</h3>
+                            </div>
+                            <span id="dlt-period" class="period-chip">期号：--</span>
+                        </div>
+                        <div id="dlt-result" class="latest-draw text-secondary" aria-live="polite"></div>
+                        <div class="record-container">
+                            <div id="dlt-records" class="record-list" aria-live="polite">
+                                <p class="empty-list">暂无预测</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section-block archive-section" id="archive" aria-labelledby="archive-title">
+                <div class="section-intro compact archive-intro">
+                    <div>
+                        <p class="section-kicker">ARCHIVE</p>
+                        <h2 id="archive-title">历史归档</h2>
+                    </div>
+                    <div class="filter-bar" aria-label="按时间筛选历史记录">
+                        <button class="filter-btn active" type="button" aria-pressed="true" data-history-range="all">全部</button>
+                        <button class="filter-btn" type="button" aria-pressed="false" data-history-range="7">近 7 天</button>
+                        <button class="filter-btn" type="button" aria-pressed="false" data-history-range="30">近 30 天</button>
+                        <button class="filter-btn" type="button" aria-pressed="false" data-history-range="90">近 90 天</button>
+                    </div>
+                </div>
+
+                <article class="gua-border archive-panel">
+                    <div class="archive-heading">
+                        <div>
+                            <span class="archive-icon" aria-hidden="true">中</span>
+                            <div><p>WINNING RECORDS</p><h3>历史中奖</h3></div>
+                        </div>
+                        <span>仅展示已匹配奖级的记录</span>
+                    </div>
+                    <div class="grid-2 archive-grid">
+                        <div class="archive-column">
+                            <p class="column-label"><span class="dot dot-red"></span> 福彩双色球</p>
+                            <div id="ssq-history"><p class="empty-list">暂无记录</p></div>
+                        </div>
+                        <div class="archive-column">
+                            <p class="column-label"><span class="dot dot-blue"></span> 体彩大乐透</p>
+                            <div id="dlt-history"><p class="empty-list">暂无记录</p></div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="gua-border archive-panel">
+                    <div class="archive-heading">
+                        <div>
+                            <span class="archive-icon archive-icon-muted" aria-hidden="true">录</span>
+                            <div><p>SETTLED READINGS</p><h3>历史预测</h3></div>
+                        </div>
+                        <span>展示全部已开奖预测与命中数量</span>
+                    </div>
+                    <div class="grid-2 archive-grid">
+                        <div class="archive-column">
+                            <p class="column-label"><span class="dot dot-red"></span> 福彩双色球</p>
+                            <div id="ssq-settled"><p class="empty-list">暂无历史预测</p></div>
+                        </div>
+                        <div class="archive-column">
+                            <p class="column-label"><span class="dot dot-blue"></span> 体彩大乐透</p>
+                            <div id="dlt-settled"><p class="empty-list">暂无历史预测</p></div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-brand">
+                <span aria-hidden="true">易</span>
+                <div><strong>梅花易数</strong><p>卦以载道，数以明理。</p></div>
+            </div>
+            <p class="footer-note">彩票开奖乃随机之事，本工具的卦象与号码映射仅供文化研究与娱乐。</p>
+            <div class="footer-stats" aria-label="站点统计">
+                <span>访问 <strong id="busuanzi_value_site_pv">0</strong> 次</span>
+                <span>访客 <strong id="busuanzi_value_site_uv">0</strong> 人</span>
+                <span>起卦 <strong id="qigua-count">0</strong> 次</span>
             </div>
         </footer>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-    <script src="assets/js/config.js?v=2.3.0"></script>
-    <script src="assets/js/data.js?v=2.3.0"></script>
-    <script src="assets/js/logic.js?v=2.3.0"></script>
-    <script src="assets/js/ui.js?v=2.3.0"></script>
-    <script src="assets/js/app.js?v=2.3.0"></script>
+    <script src="assets/js/config.js?v=3.0.0"></script>
+    <script src="assets/js/data.js?v=3.0.0"></script>
+    <script src="assets/js/logic.js?v=3.0.0"></script>
+    <script src="assets/js/ui.js?v=3.0.0"></script>
+    <script src="assets/js/app.js?v=3.0.0"></script>
 </body>
 </html>
