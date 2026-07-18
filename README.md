@@ -8,16 +8,6 @@
 
 访问：[https://peiorange888.github.io/meihua-lottery/](https://peiorange888.github.io/meihua-lottery/)
 
-## 📸 效果展示
-
-| 现代东方桌面首页 | 今日气运 | 福彩起卦 | 体彩起卦 |
-|---------|---------|---------|---------|
-| ![桌面首页](./screenshots/1.png) | ![气运断势](./screenshots/8.png) | ![福彩起卦](./screenshots/2.png) | ![体彩起卦](./screenshots/3.png) |
-
-| 移动端 | 福彩详细推导 | 体彩详细推导 | 历史预测展开 |
-|--------|-------------|-------------|---------------|
-| ![移动端](./screenshots/4.png) | ![福彩详细推导](./screenshots/5.png) | ![体彩详细推导](./screenshots/6.png) | ![历史预测展开](./screenshots/7.png) |
-
 ## 功能特点
 
 - 🔮 **时间起卦**：使用北京时间、农历年月日和时辰数生成本卦、变卦、互卦
