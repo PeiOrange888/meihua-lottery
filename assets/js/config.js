@@ -7,6 +7,7 @@ const CONFIG = {
     FIREBASE_URL: 'https://meihua-abb40-default-rtdb.firebaseio.com/lottery.json',
     LOTTERY_API: 'https://api.huiniao.top/interface/home/lotteryHistory',
     DATA_VERSION: 2,
+    LOTTERY_ALGORITHM_VERSION: 'deterministic-shuffle-v1',
     SAVE_DELAY: 1000,
     MAX_HISTORY: 120
 };

@@ -22,15 +22,9 @@ const UI = {
         }).join('');
     },
 
-    traceLine(item) {
+    tracePool(label, item) {
         if (!item) return '';
-        const base = item.original ?? item.value;
-        const adjusted = item.adjusted ? `，去重调整为 ${item.value}` : '';
-        return `<p>${item.label}：${item.formula} → 归藏${item.max} = ${base}${adjusted}</p>`;
-    },
-
-    traceList(items) {
-        return (items || []).map(item => this.traceLine(item)).join('');
+        return `<p>${label}：卦象种子进入 ${item.domain} 独立域，洗牌 1–${item.max} 完整号码池（种子 ${item.seed}），取前 ${item.count} 位 → ${item.values.join(', ')}</p>`;
     },
 
     compactGroups(groups, mode, type) {
@@ -59,12 +53,12 @@ const UI = {
             this.$('ssq-red').innerHTML = this.balls(l.red, 'red');
             this.$('ssq-blue').innerHTML = this.balls([l.blue], 'blue');
             this.$('ssq-info').innerHTML = guaInfo;
-            this.$('ssq-detail').innerHTML = `<div class="space-y-2"><p><strong>【双色球推导】</strong></p>${this.traceList(l.trace?.ssq?.red)}${this.traceLine(l.trace?.ssq?.blue)}<p class="mt-4"><strong>最终：</strong>红球 ${l.red.join(', ')} + 蓝球 ${l.blue}</p></div>`;
+            this.$('ssq-detail').innerHTML = `<div class="space-y-2"><p><strong>【双色球推导】</strong></p><p>算法：确定性种子洗牌 v1（卦象摘要 ${l.trace?.guaSeed}）</p>${this.tracePool('红球', l.trace?.ssq?.red)}${this.tracePool('蓝球', l.trace?.ssq?.blue)}<p class="mt-4"><strong>最终：</strong>红球 ${l.red.join(', ')} + 蓝球 ${l.blue}</p></div>`;
         } else {
             this.$('dlt-front').innerHTML = this.balls(l.front, 'red');
             this.$('dlt-back').innerHTML = this.balls(l.back, 'blue');
             this.$('dlt-info').innerHTML = guaInfo;
-            this.$('dlt-detail').innerHTML = `<div class="space-y-2"><p><strong>【大乐透推导】</strong></p>${this.traceList(l.trace?.dlt?.front)}${this.traceList(l.trace?.dlt?.back)}<p class="mt-4"><strong>最终：</strong>前区 ${l.front.join(', ')} + 后区 ${l.back.join(', ')}</p></div>`;
+            this.$('dlt-detail').innerHTML = `<div class="space-y-2"><p><strong>【大乐透推导】</strong></p><p>算法：确定性种子洗牌 v1（卦象摘要 ${l.trace?.guaSeed}）</p>${this.tracePool('前区', l.trace?.dlt?.front)}${this.tracePool('后区', l.trace?.dlt?.back)}<p class="mt-4"><strong>最终：</strong>前区 ${l.front.join(', ')} + 后区 ${l.back.join(', ')}</p></div>`;
         }
         const panel = document.querySelector(`.result-${type}`);
         panel?.classList.add('is-active');

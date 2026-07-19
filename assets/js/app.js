@@ -90,6 +90,10 @@ const App = {
             const cached = localStorage.getItem(key);
             if (cached) {
                 const data = JSON.parse(cached);
+                if (data.algorithmVersion !== CONFIG.LOTTERY_ALGORITHM_VERSION) {
+                    localStorage.removeItem(key);
+                    return null;
+                }
                 // 验证缓存是否在同一时辰内
                 const cachedKey = this._getShichenKey(new Date(data.timestamp));
                 const currentKey = this._getShichenKey(date);
@@ -105,6 +109,7 @@ const App = {
         const key = `shichen_${type}_${this._getShichenKey(date)}`;
         try {
             const data = {
+                algorithmVersion: CONFIG.LOTTERY_ALGORITHM_VERSION,
                 timestamp: date.getTime(),
                 gua: gua,
                 lottery: lottery

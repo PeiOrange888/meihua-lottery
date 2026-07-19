@@ -77,6 +77,12 @@ assert(fixed.lunarText === '2026年四月26', 'Fixed date lunar conversion misma
 assert(fixed.benGua.name === '风雷益', 'Fixed date ben gua mismatch');
 assert(fixed.bianGua.name === '风泽中孚', 'Fixed date bian gua mismatch');
 assert(fixed.huGua.name === '山地剥', 'Fixed date hu gua mismatch');
+const fixedLottery = Core.genLottery(fixed);
+assert(
+  JSON.stringify({ red: fixedLottery.red, blue: fixedLottery.blue, front: fixedLottery.front, back: fixedLottery.back })
+    === JSON.stringify({ red: [1, 13, 24, 26, 29, 33], blue: 4, front: [2, 4, 6, 12, 31], back: [2, 10] }),
+  'Deterministic shuffle golden vector changed without an algorithm version update'
+);
 
 for (let i = 0; i < 72; i++) {
   const date = new Date(Date.UTC(2026, 0, 1, 0, 0, 0) + i * 11 * 60 * 60 * 1000);
@@ -86,6 +92,7 @@ for (let i = 0; i < 72; i++) {
   const reading = Core.calcGuaReading(gua);
 
   assert(JSON.stringify(first) === JSON.stringify(second), 'Lottery generation must be deterministic');
+  assert(first.trace.algorithm === 'deterministic-shuffle-v1', 'Lottery generation must use deterministic pool shuffling');
   assert(!('relationCoeff' in first.trace) && !('relationBias' in first.trace), 'Lottery trace must not depend on qi yun coefficients');
   assert(first.red.length === 6 && unique(first.red) && inRange(first.red, 1, 33), 'SSQ red balls invalid');
   assert(inRange([first.blue], 1, 16), 'SSQ blue ball invalid');
@@ -94,6 +101,33 @@ for (let i = 0; i < 72; i++) {
   assert(Number.isInteger(reading.score) && reading.score >= 0 && reading.score <= 100, 'Gua reading score invalid');
   assert(reading.level && reading.summary && reading.factors.length === 3, 'Gua reading structure invalid');
 }
+
+for (const { domain, max, count } of [
+  { domain: 'ssq:red', max: 33, count: 6 },
+  { domain: 'ssq:blue', max: 16, count: 1 },
+  { domain: 'dlt:front', max: 35, count: 5 },
+  { domain: 'dlt:back', max: 12, count: 2 }
+]) {
+  const occurrences = Array(max + 1).fill(0);
+  for (let seedIndex = 0; seedIndex < 4096; seedIndex++) {
+    const first = Core.seededSelection(`distribution-${seedIndex}`, domain, max, count);
+    const second = Core.seededSelection(`distribution-${seedIndex}`, domain, max, count);
+    assert(JSON.stringify(first) === JSON.stringify(second), `${domain} selection must be deterministic`);
+    assert(first.values.length === count && unique(first.values), `${domain} selection must be unique`);
+    assert(inRange(first.values, 1, max), `${domain} selection must stay in range`);
+    first.values.forEach(value => occurrences[value]++);
+  }
+  const usedCounts = occurrences.slice(1);
+  assert(usedCounts.every(Boolean), `${domain} selection must cover its complete number pool`);
+  assert(Math.max(...usedCounts) / Math.min(...usedCounts) < 1.2, `${domain} selection distribution is excessively skewed`);
+}
+
+const sharedSeed = 'same-gua-seed';
+assert(
+  JSON.stringify(Core.seededSelection(sharedSeed, 'ssq:red', 33, 6).values)
+    !== JSON.stringify(Core.seededSelection(sharedSeed, 'dlt:front', 33, 6).values),
+  'Lottery pools must use independent domain seeds'
+);
 
 context.Store.data.dlt = {
   period: '26069',
@@ -221,7 +255,7 @@ function createAppTestContext() {
     $: element
   };
   vm.createContext(appContext);
-  vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\n${appSource}\nglobalThis.__appTest = { App, Api, Store, UI };`, appContext);
+  vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\n${appSource}\nglobalThis.__appTest = { App, Api, Store, UI, localStorage };`, appContext);
   return appContext.__appTest;
 }
 
@@ -324,6 +358,21 @@ console.log('Store persistence tests passed.');
 }
 
 console.log('App refresh settlement tests passed.');
+
+{
+  const { App, localStorage } = createAppTestContext();
+  const now = new Date('2026-07-19T10:00:00+08:00');
+  const key = `shichen_ssq_${App._getShichenKey(now)}`;
+  localStorage.setItem(key, JSON.stringify({ timestamp: now.getTime(), gua: {}, lottery: {} }));
+  assert(App._checkShichenCache('ssq', now) === null, 'Unversioned lottery cache must be invalidated');
+  assert(localStorage.getItem(key) === null, 'Invalid lottery cache must be removed');
+
+  App._saveShichenCache('ssq', now, { benXu: 1 }, { red: [1, 2, 3, 4, 5, 6], blue: 7 });
+  const cached = App._checkShichenCache('ssq', now);
+  assert(cached?.gua?.benXu === 1, 'Current algorithm cache must remain reusable within the shichen');
+}
+
+console.log('App algorithm cache tests passed.');
 
 {
   const { App, Store, UI } = createAppTestContext();

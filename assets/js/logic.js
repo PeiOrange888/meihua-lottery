@@ -173,6 +173,49 @@ const Core = {
         return { type: '比和', desc: `体${tw}比用${yw}` };
     },
 
+    hashSeed(value) {
+        let hash = 2166136261;
+        const source = String(value);
+        for (let index = 0; index < source.length; index++) {
+            hash ^= source.charCodeAt(index);
+            hash = Math.imul(hash, 16777619);
+        }
+        hash ^= hash >>> 16;
+        hash = Math.imul(hash, 2246822507);
+        hash ^= hash >>> 13;
+        hash = Math.imul(hash, 3266489909);
+        return (hash ^ (hash >>> 16)) >>> 0;
+    },
+
+    seededSelection(baseSeed, domain, max, count) {
+        let state = this.hashSeed(`${CONFIG.LOTTERY_ALGORITHM_VERSION}|${domain}|${baseSeed}`);
+        const nextUint32 = () => {
+            state = (state + 0x6D2B79F5) >>> 0;
+            let value = state;
+            value = Math.imul(value ^ (value >>> 15), value | 1);
+            value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+            return (value ^ (value >>> 14)) >>> 0;
+        };
+        const randomIndex = limit => {
+            const ceiling = Math.floor(0x100000000 / limit) * limit;
+            let value;
+            do { value = nextUint32(); } while (value >= ceiling);
+            return value % limit;
+        };
+        const pool = Array.from({ length: max }, (_, index) => index + 1);
+        for (let index = pool.length - 1; index > 0; index--) {
+            const target = randomIndex(index + 1);
+            [pool[index], pool[target]] = [pool[target], pool[index]];
+        }
+        return {
+            domain,
+            max,
+            count,
+            seed: this.hashSeed(`${CONFIG.LOTTERY_ALGORITHM_VERSION}|${domain}|${baseSeed}`).toString(16).padStart(8, '0'),
+            values: pool.slice(0, count)
+        };
+    },
+
     calcGua(date = new Date()) {
         const gregorian = this.beijingParts(date);
         const lunar = this.lunarParts(date);
@@ -217,51 +260,33 @@ const Core = {
     },
 
     genLottery(g) {
-        const entry = (label, raw, max, formula) => ({ label, raw: Math.round(raw), max, value: this.guiCang(raw, max), formula });
-        const unique = (entries, max) => {
-            const used = new Set();
-            return entries.map((item, index) => {
-                let value = item.value;
-                let step = this.guiCang(item.raw + g.benXu + g.bianXu + g.huXu + g.dong + index + 1, max - 1);
-                let attempts = 0;
-                const original = value;
-                while (used.has(value) && attempts < max) {
-                    value = this.guiCang(value + step, max);
-                    step = this.guiCang(step + g.dong + index + 1, max - 1);
-                    attempts++;
-                }
-                used.add(value);
-                return { ...item, value, original, adjusted: value !== original };
-            });
-        };
-        const tiYongRaw = g.ti * 8 + g.yong + g.dong + g.dz + g.huXu;
-        const structureRaw = g.bianXu + g.huXu + g.ti * g.yong + g.dong + g.yearBranch;
-        const redTrace = unique([
-            entry('本卦序', g.benXu, 33, `${g.benGua.name}第${g.benXu}卦`),
-            entry('变卦序', g.bianXu, 33, `${g.bianGua.name}第${g.bianXu}卦`),
-            entry('互卦序', g.huXu, 33, `${g.huGua.name}第${g.huXu}卦`),
-            entry('体用数', tiYongRaw, 33, `${g.ti}×8+${g.yong}+动爻${g.dong}+时辰${g.dz}+互卦${g.huXu}`),
-            entry('上下卦组合', g.shang * 10 + g.xia + g.lunarDay, 33, `${g.shang}×10+${g.xia}+农历日${g.lunarDay}`),
-            entry('卦序合参', structureRaw, 33, `变卦${g.bianXu}+互卦${g.huXu}+体用${g.ti}×${g.yong}+动爻${g.dong}+年支${g.yearBranch}`)
-        ], 33);
-        const blueTrace = entry('蓝球', g.dong + g.dz + g.ti + g.yong + g.lunarMonth, 16, `动爻${g.dong}+时辰${g.dz}+体${g.ti}+用${g.yong}+农历月${g.lunarMonth}`);
-        const frontTrace = unique([
-            entry('本卦序', g.benXu, 35, `${g.benGua.name}第${g.benXu}卦`),
-            entry('变卦序', g.bianXu, 35, `${g.bianGua.name}第${g.bianXu}卦`),
-            entry('互卦序', g.huXu, 35, `${g.huGua.name}第${g.huXu}卦`),
-            entry('体用数', tiYongRaw + g.lunarMonth, 35, `体用数${tiYongRaw}+农历月${g.lunarMonth}`),
-            entry('动爻时辰', g.dong * g.dz + g.hShang * g.hXia + g.yearBranch, 35, `动爻${g.dong}×时辰${g.dz}+互卦${g.hShang}×${g.hXia}+年支${g.yearBranch}`)
-        ], 35);
-        const backTrace = unique([
-            entry('互上动爻', g.hShang + g.dong + g.lunarMonth, 12, `互卦上${g.hShang}+动爻${g.dong}+农历月${g.lunarMonth}`),
-            entry('互下时辰', g.hXia + g.dz + g.ti + g.yearBranch, 12, `互卦下${g.hXia}+时辰${g.dz}+体${g.ti}+年支${g.yearBranch}`)
-        ], 12);
+        const guaSeed = [
+            g.lunarYear,
+            g.lunarMonth,
+            g.lunarDay,
+            g.yearBranch,
+            g.dz,
+            g.shang,
+            g.xia,
+            g.dong,
+            g.benXu,
+            g.bianXu,
+            g.huXu,
+            g.ti,
+            g.yong
+        ].join(':');
+        const redTrace = this.seededSelection(guaSeed, 'ssq:red', 33, 6);
+        const blueTrace = this.seededSelection(guaSeed, 'ssq:blue', 16, 1);
+        const frontTrace = this.seededSelection(guaSeed, 'dlt:front', 35, 5);
+        const backTrace = this.seededSelection(guaSeed, 'dlt:back', 12, 2);
         return {
-            red: redTrace.map(item => item.value).sort((a,b) => a-b),
-            blue: blueTrace.value,
-            front: frontTrace.map(item => item.value).sort((a,b) => a-b),
-            back: backTrace.map(item => item.value).sort((a,b) => a-b),
+            red: [...redTrace.values].sort((a,b) => a-b),
+            blue: blueTrace.values[0],
+            front: [...frontTrace.values].sort((a,b) => a-b),
+            back: [...backTrace.values].sort((a,b) => a-b),
             trace: {
+                algorithm: CONFIG.LOTTERY_ALGORITHM_VERSION,
+                guaSeed: this.hashSeed(guaSeed).toString(16).padStart(8, '0'),
                 ssq: { red: redTrace, blue: blueTrace },
                 dlt: { front: frontTrace, back: backTrace }
             }
