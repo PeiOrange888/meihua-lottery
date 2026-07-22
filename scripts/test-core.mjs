@@ -169,20 +169,18 @@ assert(repairedGroup.records[0].match.mRed === 2 && repairedGroup.records[0].mat
 
 console.log('Core algorithm tests passed.');
 
-function createStoreTestContext(fetchImpl) {
+function createStoreTestContext(fetchImpl, storage = new Map()) {
+  const timers = [];
   const storeContext = {
     console,
     Date,
     Intl,
     fetch: fetchImpl,
     localStorage: {
-      getItem: () => null,
-      setItem: () => {}
+      getItem: key => storage.has(key) ? storage.get(key) : null,
+      setItem: (key, value) => storage.set(key, String(value))
     },
-    setTimeout: (fn) => {
-      fn();
-      return 1;
-    },
+    setTimeout: fn => { timers.push(fn); return timers.length; },
     clearTimeout: () => {}
   };
   vm.createContext(storeContext);
@@ -255,7 +253,7 @@ function createAppTestContext() {
     $: element
   };
   vm.createContext(appContext);
-  vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\n${appSource}\nglobalThis.__appTest = { App, Api, Store, UI, localStorage };`, appContext);
+  vm.runInContext(`${configSource}\n${logicSource}\n${dataSource}\n${appSource}\nglobalThis.__appTest = { App, Api, Store, UI, SiteStats, localStorage };`, appContext);
   return appContext.__appTest;
 }
 
@@ -281,15 +279,15 @@ function createAppTestContext() {
   Store.addRecord('ssq', record);
   await Store.save();
 
-  assert(writes.length === 2, 'Adding one record must persist the record and increment the shared count');
-  const recordWrite = writes.find(write => write.url.endsWith('/lottery/ssq/records/p_test_record.json'));
-  const countWrite = writes.find(write => write.url.endsWith('/lottery/qigua_count.json'));
-  assert(recordWrite, 'Predictions must write to their own record path');
-  assert(recordWrite.options.method === 'PUT', 'Predictions must use stable record keys');
+  assert(writes.length === 2, 'Adding one record must persist the record and refresh the shared count');
+  const atomicWrite = writes.find(write => write.url.endsWith('/lottery.json') && write.options.method === 'PATCH');
+  const countRead = writes.find(write => write.url.endsWith('/lottery/qigua_count.json') && !write.options?.method);
+  assert(atomicWrite, 'Predictions and count must use one atomic Firebase update');
+  const updates = JSON.parse(atomicWrite.options.body);
+  assert(updates['ssq/records/p_test_record']?.id === 'p_test_record', 'Atomic update must contain the prediction record');
+  assert(updates.qigua_count?.['.sv']?.increment === 1, 'Atomic update must increment the shared count');
+  assert(countRead, 'Successful persistence must refresh the displayed count');
   assert(!writes.some(write => write.url.endsWith('/lottery/ssq.json')), 'Predictions must not replace the whole lottery type branch');
-  assert(countWrite, 'Persisted predictions must increment the shared qigua count');
-  assert(countWrite.options.method === 'PUT', 'Qigua count must use an atomic server increment write');
-  assert(countWrite.options.body === JSON.stringify({ '.sv': { increment: 1 } }), 'Qigua count must not be overwritten with a client-side total');
 }
 
 {
@@ -328,6 +326,53 @@ function createAppTestContext() {
 console.log('Store persistence tests passed.');
 
 {
+  const storage = new Map();
+  let allowWrite = false;
+  const record = {
+    id: 'p_outbox_record',
+    time: 1,
+    user: { id: 'u1', nickname: '测试居士' },
+    period: '2026066',
+    status: 'pending',
+    red: [1, 2, 3, 4, 5, 6],
+    blue: [7]
+  };
+  const { Store } = createStoreTestContext(async (url, options = {}) => {
+    if (options.method === 'PATCH' && !allowWrite) return { ok: false, status: 503, json: async () => null };
+    if (options.method === 'PATCH') return { ok: true, json: async () => null };
+    return { ok: false, status: 503, json: async () => null };
+  }, storage);
+  Store.addRecord('ssq', record);
+  await Store.save();
+  assert(Store.pendingRecords.length === 1, 'Failed atomic writes must remain pending');
+  assert(storage.get('meihua_prediction_outbox_v1').includes('p_outbox_record'), 'Pending records must survive in the local outbox');
+
+  const restored = createStoreTestContext(async () => ({ ok: true, json: async () => null }), storage).Store;
+  await restored.load();
+  assert(restored.pendingRecords[0]?.record.id === 'p_outbox_record', 'Pending outbox records must restore after reload');
+  allowWrite = true;
+  await restored.save();
+  assert(restored.pendingRecords.length === 0, 'Restored records must clear from the outbox after a successful retry');
+}
+
+console.log('Store outbox recovery tests passed.');
+
+{
+  const { SiteStats } = createAppTestContext();
+  const [pageViews, visitors] = SiteStats.elements();
+  SiteStats.finish();
+  assert(pageViews.textContent === '--' && visitors.textContent === '--', 'Unavailable visitor statistics must not display a false zero');
+  assert(pageViews.dataset.statsState === 'unavailable', 'Unavailable visitor statistics must expose a fallback state');
+
+  pageViews.textContent = '1,234';
+  visitors.textContent = '456';
+  SiteStats.finish();
+  assert(pageViews.dataset.statsState === 'ready', 'Loaded visitor statistics must expose a ready state');
+}
+
+console.log('Site statistics fallback tests passed.');
+
+{
   const { App, Api, Store, UI } = createAppTestContext();
   const rendered = [];
   Store.data.dlt = {
@@ -361,7 +406,8 @@ console.log('App refresh settlement tests passed.');
 
 {
   const { App, localStorage } = createAppTestContext();
-  const now = new Date('2026-07-19T10:00:00+08:00');
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
   const key = `shichen_ssq_${App._getShichenKey(now)}`;
   localStorage.setItem(key, JSON.stringify({ timestamp: now.getTime(), gua: {}, lottery: {} }));
   assert(App._checkShichenCache('ssq', now) === null, 'Unversioned lottery cache must be invalidated');
@@ -382,11 +428,6 @@ console.log('App algorithm cache tests passed.');
 
   Store.data.ssq = { period: '2026070', records: [], result: null, history: [] };
   Store.data.qiguaCount = 0;
-  Store.incCount = () => {
-    Store.data.qiguaCount++;
-    counts.push(Store.data.qiguaCount);
-    return Store.data.qiguaCount;
-  };
   Store.addRecord = (type, record) => {
     Store.data[type].records.push(record);
     addedRecords.push({ type, record });
@@ -401,7 +442,7 @@ console.log('App algorithm cache tests passed.');
   await App.doQiGua('ssq');
 
   assert(addedRecords.length === 1, 'Same shichen repeat prediction must not add duplicate records');
-  assert(Store.data.qiguaCount === 1, 'Same shichen repeat prediction must not increment qigua count');
+  assert(Store.data.qiguaCount === 0, 'Same shichen repeat prediction must not increment an unsaved qigua count');
   assert(toasts.includes('本时辰已起卦，卦象相同'), 'Same shichen repeat prediction must show cached-result toast');
 }
 

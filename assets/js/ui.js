@@ -251,7 +251,7 @@ const UI = {
 
     setTime(g) { this.$('time-display').textContent = `起卦时间 · ${g.y}年${g.m}月${g.d}日 ${g.h}时${g.min}分${g.s}秒`; },
     setPeriod(type, period) { this.$(`${type}-period`).textContent = `预测期号：${period}`; },
-    setCount(n) { this.$('qigua-count').textContent = n; },
+    setCount(n) { this.$('qigua-count').textContent = Number.isFinite(n) ? n : '--'; },
 
     setLoading(id, loading) {
         const btn = this.$(id);

@@ -51,6 +51,19 @@ trusted backend too:
 In that model, GitHub Pages remains the front end, and the backend performs
 all database writes.
 
+## Visitor Statistics
+
+The footer's page-view and visitor values are supplied by the third-party
+Busuanzi service. They are approximate site-level PV/UV values, not an
+authoritative user count. If the service cannot be loaded, the page displays
+`--` instead of treating the failure as zero. The service request is made from
+the visitor's browser, so deployments should disclose this third-party
+measurement in their privacy notice.
+
+Prediction records and their aggregate count are written to Firebase in one
+multi-location update. Unsent records are kept in a browser outbox and retried
+after the page is opened again.
+
 ## Scheduled Settlement
 
 This repository includes `.github/workflows/settle-lottery-admin.yml`, which

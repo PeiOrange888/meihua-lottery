@@ -28,11 +28,11 @@ const User = {
 // 数据存储
 // ============================================
 const Store = {
-    data: { qiguaCount: 0, ssq: { period:'', records:[], result:null, history:[] }, dlt: { period:'', records:[], result:null, history:[] } },
+    data: { qiguaCount: null, ssq: { period:'', records:[], result:null, history:[] }, dlt: { period:'', records:[], result:null, history:[] } },
     saveTimer: null,
     pendingRecords: [],
-    pendingCountIncrement: 0,
     saveInFlight: null,
+    outboxKey: 'meihua_prediction_outbox_v1',
 
     normalizeRecords(value) {
         const records = Array.isArray(value) ? value.filter(Boolean) :
@@ -73,6 +73,39 @@ const Store = {
         return this.countBranch(this.data.ssq) + this.countBranch(this.data.dlt);
     },
 
+    persistOutbox() {
+        try {
+            localStorage.setItem(this.outboxKey, JSON.stringify(this.pendingRecords));
+        } catch(e) { console.error('保存待同步记录失败:', e); }
+    },
+
+    recordExists(type, record) {
+        const id = String(record.id || '');
+        if (!id) return false;
+        const branch = this.data[type] || {};
+        return (branch.records || []).some(item => String(item.id || item.key || '') === id) ||
+            (branch.history || []).some(group => (group.records || []).some(item => String(item.id || item.key || '') === id));
+    },
+
+    restoreOutbox() {
+        let stored = [];
+        try {
+            const value = JSON.parse(localStorage.getItem(this.outboxKey) || '[]');
+            stored = Array.isArray(value) ? value : [];
+        } catch(e) {}
+
+        const seen = new Set(this.pendingRecords.map(item => `${item.type}:${this.keyForRecord(item.record, '')}`));
+        stored.forEach(item => {
+            if (!item || !['ssq', 'dlt'].includes(item.type) || !item.record?.id) return;
+            const key = `${item.type}:${this.keyForRecord(item.record, '')}`;
+            if (seen.has(key) || this.recordExists(item.type, item.record)) return;
+            seen.add(key);
+            this.pendingRecords.push({ type: item.type, record: item.record });
+            this.data[item.type].records.push(item.record);
+        });
+        this.persistOutbox();
+    },
+
     recordUrl(type, record, fallback) {
         const key = this.keyForRecord(record, fallback);
         return CONFIG.FIREBASE_URL.replace('.json', `/${type}/records/${key}.json`);
@@ -85,13 +118,16 @@ const Store = {
     async load() {
         try {
             const res = await fetch(CONFIG.FIREBASE_URL);
+            if (!res.ok) throw new Error(`数据请求失败: ${res.status}`);
             const d = await res.json();
             if (d) {
                 if (d.ssq) this.data.ssq = this.normalizeBranch(d.ssq);
                 if (d.dlt) this.data.dlt = this.normalizeBranch(d.dlt);
                 this.data.qiguaCount = Math.max(Number(d.qigua_count) || 0, this.countPredictions());
-            }
+            } else this.data.qiguaCount = 0;
         } catch(e) { console.error('加载数据失败:', e); }
+        this.restoreOutbox();
+        if (this.pendingRecords.length > 0) this.scheduleSave();
     },
 
     scheduleSave() {
@@ -101,41 +137,26 @@ const Store = {
 
     async save() {
         if (this.saveInFlight) return this.saveInFlight;
-        if (this.pendingRecords.length === 0 && this.pendingCountIncrement === 0) return;
+        if (this.pendingRecords.length === 0) return;
 
         const run = async () => {
             try {
                 const pending = [...this.pendingRecords];
-                const writes = pending.map((item, index) =>
-                    fetch(this.recordUrl(item.type, item.record, index), {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(item.record)
-                    })
-                );
-                const results = await Promise.allSettled(writes);
-                const savedItems = pending.filter((_, index) => results[index]?.status === 'fulfilled' && results[index].value?.ok);
+                const results = await Promise.allSettled(pending.map(item => this.persistItem(item)));
+                const savedItems = pending.filter((_, index) => results[index]?.status === 'fulfilled' && results[index].value === true);
                 if (savedItems.length > 0) {
                     const savedSet = new Set(savedItems);
                     this.pendingRecords = this.pendingRecords.filter(item => !savedSet.has(item));
-                    this.pendingCountIncrement += savedItems.length;
+                    this.persistOutbox();
+                    const current = Number(this.data.qiguaCount);
+                    this.data.qiguaCount = (Number.isFinite(current) ? current : 0) + savedItems.length;
+                    globalThis.UI?.setCount?.(this.data.qiguaCount);
+                    await this.refreshCount();
                 }
-
-                while (this.pendingCountIncrement > 0) {
-                    const response = await fetch(this.countUrl(), {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ '.sv': { increment: 1 } })
-                    });
-                    if (!response.ok) break;
-                    this.pendingCountIncrement--;
-                }
-
-                if (this.pendingRecords.length > 0 || this.pendingCountIncrement > 0) {
-                    this.scheduleSave();
-                }
+                if (this.pendingRecords.length > 0) this.scheduleSave();
             } catch(e) {
                 console.error('保存数据失败:', e);
+                this.scheduleSave();
             }
         };
 
@@ -145,15 +166,46 @@ const Store = {
         return this.saveInFlight;
     },
 
+    async persistItem(item) {
+        const key = this.keyForRecord(item.record, Date.now());
+        const updates = {
+            [`${item.type}/records/${key}`]: item.record,
+            qigua_count: { '.sv': { increment: 1 } }
+        };
+        try {
+            const response = await fetch(CONFIG.FIREBASE_URL, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            if (response.ok) return true;
+        } catch(e) {}
+
+        // A lost response may still mean the atomic write committed. Verify before retrying.
+        try {
+            const response = await fetch(this.recordUrl(item.type, item.record, key));
+            if (!response.ok) return false;
+            const existing = await response.json();
+            return String(existing?.id || '') === String(item.record.id);
+        } catch(e) { return false; }
+    },
+
+    async refreshCount() {
+        try {
+            const response = await fetch(this.countUrl());
+            if (!response.ok) return;
+            const value = Number(await response.json());
+            if (!Number.isFinite(value)) return;
+            this.data.qiguaCount = value;
+            globalThis.UI?.setCount?.(value);
+        } catch(e) {}
+    },
+
     addRecord(type, record) {
         this.data[type].records.push(record);
         this.pendingRecords.push({ type, record });
+        this.persistOutbox();
         this.scheduleSave();
-    },
-
-    incCount() {
-        this.data.qiguaCount++;
-        return this.data.qiguaCount;
     }
 };
 

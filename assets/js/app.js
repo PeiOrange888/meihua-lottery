@@ -1,12 +1,55 @@
+// 站点访问统计
+// ============================================
+const SiteStats = {
+    scriptUrl: 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js',
+    timeoutMs: 8000,
+    initialized: false,
+
+    elements() {
+        return ['busuanzi_value_site_pv', 'busuanzi_value_site_uv']
+            .map(id => document.getElementById(id))
+            .filter(Boolean);
+    },
+
+    setState(state) {
+        this.elements().forEach(el => el.dataset.statsState = state);
+    },
+
+    hasValue(el) {
+        return /^\d[\d,]*$/.test((el?.textContent || '').trim());
+    },
+
+    finish() {
+        const elements = this.elements();
+        elements.forEach(el => {
+            if (!this.hasValue(el)) el.textContent = '--';
+        });
+        this.setState(elements.every(el => this.hasValue(el)) ? 'ready' : 'unavailable');
+    },
+
+    init() {
+        if (this.initialized) return;
+        this.initialized = true;
+        if (location.protocol === 'file:') {
+            this.finish();
+            return;
+        }
+
+        this.setState('loading');
+        const script = document.createElement('script');
+        script.src = this.scriptUrl;
+        script.async = true;
+        script.onerror = () => this.finish();
+        document.head.appendChild(script);
+        setTimeout(() => this.finish(), this.timeoutMs);
+    }
+};
+
 // 应用
 // ============================================
 const App = {
     async init() {
-        if (location.protocol !== 'file:') {
-            const script = document.createElement('script');
-            script.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
-            script.async = true; document.head.appendChild(script);
-        } else { document.getElementById('busuanzi_value_site_pv').textContent = '--'; document.getElementById('busuanzi_value_site_uv').textContent = '--'; }
+        SiteStats.init();
 
         await Store.load();
         UI.setCount(Store.data.qiguaCount);
@@ -53,7 +96,6 @@ const App = {
                 return;
             }
 
-            const count = Store.incCount(); UI.setCount(count);
             const g = Core.calcGua(); const l = Core.genLottery(g);
 
             // 缓存本时辰的预测结果
@@ -164,4 +206,4 @@ document.addEventListener('click', event => {
 });
 document.addEventListener('DOMContentLoaded', () => App.init());
 
-window.App = App; window.UI = UI;
+window.App = App; window.UI = UI; window.SiteStats = SiteStats;
